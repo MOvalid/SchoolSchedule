@@ -6,16 +6,13 @@ export const getAllStudents = () => api.get<StudentDto[]>('/students');
 export const getStudentsSorted = () => api.get<StudentDto[]>('/students/sorted');
 
 export const getStudentsByClass = (classId: number) =>
-  api.get<StudentDto[]>(`/students/class/${classId}`);
+    api.get<StudentDto[]>(`/students/class/${classId}`);
 
-export const getStudentById = (id: number) =>
-  api.get<StudentDto>(`/students/${id}`);
+export const getStudentById = (id: number) => api.get<StudentDto>(`/students/${id}`);
 
-export const createStudent = (data: StudentDto) =>
-  api.post<StudentDto>('/students', data);
+export const createStudent = (data: StudentDto) => api.post<StudentDto>('/students', data);
 
 export const updateStudent = (id: number, data: StudentDto) =>
-  api.put<StudentDto>(`/students/${id}`, data);
+    api.put<StudentDto>(`/students/${id}`, data);
 
-export const deleteStudent = (id: number) =>
-  api.delete(`/students/${id}`);
+export const deleteStudent = (id: number) => api.delete(`/students/${id}`);
