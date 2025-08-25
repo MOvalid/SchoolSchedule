@@ -45,8 +45,8 @@ public class ScheduleMapper {
             students = new HashSet<Student>(studentRepository.findAllById(dto.getStudentIds()));
         }
 
-        LocalTime start = LocalTime.parse(dto.getStartTime());
-        LocalTime end = LocalTime.parse(dto.getEndTime());
+        LocalTime start = parseToLocalTime(dto.getStartTime());
+        LocalTime end = parseToLocalTime(dto.getEndTime());
 
         return ScheduleSlot.builder()
                 .id(dto.getId())
@@ -54,6 +54,7 @@ public class ScheduleMapper {
                 .room(room)
                 .startTime(start)
                 .endTime(end)
+                .dayOfWeek(DayOfWeek.of(dto.getDayOfWeek()))
                 .studentClass(studentClass)
                 .students(students)
                 .isIndividual(dto.isIndividual())

@@ -10,12 +10,7 @@ const getMondayOfCurrentWeekUTC = (): Date => {
 };
 
 const createUTCDateTime = (mondayUTC: Date, dayOfWeek: number, timeStr: string): string => {
-    console.log(mondayUTC);
-    console.log(dayOfWeek);
-    console.log(timeStr);
     const [hour, minute, second = '0'] = timeStr.split(':');
-    console.log(hour);
-    console.log(minute);
     const date = new Date(
         Date.UTC(
             mondayUTC.getUTCFullYear(),
@@ -50,7 +45,7 @@ export const convertScheduleSlotDto2 = (slot: ScheduleSlotDto): Slot => {
         end: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.endTime),
         therapistId: slot.therapistId,
         roomId: slot.roomId,
-        studentId: slot.studentId,
+        studentIds: slot.studentIds,
         studentClassId: slot.studentClassId,
     };
 };
@@ -63,7 +58,7 @@ export const convertFormValuesToScheduleSlotDto = (formValues: SlotFormValues): 
         dayOfWeek: new Date(formValues.start).getDay(),
         therapistId: formValues.therapistId,
         roomId: formValues.roomId,
-        studentId: formValues.studentId,
+        studentIds: formValues.studentIds,
         studentClassId: formValues.studentClassId,
     };
 };

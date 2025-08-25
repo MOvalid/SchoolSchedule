@@ -8,7 +8,7 @@ export const mockSchedule: ScheduleSlotDto[] = [
         endTime: '10:00',
         dayOfWeek: 1, // Poniedziałek
         therapistId: 1,
-        studentId: 1,
+        studentIds: [1],
         roomId: 1,
     },
     {
@@ -18,7 +18,7 @@ export const mockSchedule: ScheduleSlotDto[] = [
         endTime: '12:00',
         dayOfWeek: 2, // Wtorek
         therapistId: 1,
-        studentId: 1,
+        studentIds: [1],
         roomId: 2,
     },
     {
@@ -28,7 +28,7 @@ export const mockSchedule: ScheduleSlotDto[] = [
         endTime: '13:00',
         dayOfWeek: 2, // Wtorek
         therapistId: 1,
-        studentId: 1,
+        studentIds: [1],
         roomId: 2,
     },
 ];

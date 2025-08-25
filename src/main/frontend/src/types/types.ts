@@ -34,7 +34,8 @@ export interface Slot {
     title: string;
     therapistId?: number;
     roomId?: number;
-    studentId?: number;
+    isIndividual?: boolean;
+    studentIds?: number[];
     studentClassId?: number;
     start: string; // ISO format, np. "2025-01-06T09:00:00"
     end: string;
@@ -45,8 +46,9 @@ export interface SlotFormValues {
     start: string;
     end: string;
     therapistId?: number;
+    isIndividual?: boolean;
     roomId?: number;
-    studentId?: number;
+    studentIds: number[];
     studentClassId?: number;
 }
 
@@ -63,11 +65,13 @@ export interface ScheduleSlotDto {
     roomId?: number;
     room?: RoomDto;
 
-    studentId?: number;
-    student?: StudentDto;
+    studentIds?: number[];
+    students?: StudentDto[];
 
     studentClassId?: number;
     studentClass?: StudentClassDto;
+
+    isIndividual?: boolean;
 }
 
 export interface ApiResponse<T> {
@@ -79,4 +83,18 @@ export interface ErrorResponse {
     error: string;
     message?: string;
     status?: number;
+}
+
+export type EntityType = 'STUDENT' | 'CLASS' | 'THERAPIST';
+
+export interface ScheduleSlotMutationParams {
+    id?: number;
+    studentIds?: number[];
+    data: ScheduleSlotDto;
+}
+
+export interface UseScheduleHookResult<T> {
+    data: T;
+    isLoading: boolean;
+    error?: Error;
 }

@@ -57,7 +57,7 @@ const StudentScheduleCalendarPage = () => {
         end: '',
         therapistId: undefined,
         roomId: undefined,
-        studentId: undefined,
+        studentIds: [],
         studentClassId: undefined,
     });
     const [therapists, setTherapists] = useState<TherapistDto[]>([]);
@@ -65,7 +65,7 @@ const StudentScheduleCalendarPage = () => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, studentId);
-    const updateSchedule = useUpdateScheduleSlot();
+    const updateSchedule = useUpdateScheduleSlot(entityType, studentId);
     const createSlot = useCreateStudentScheduleSlot();
 
     useEffect(() => {
@@ -107,8 +107,8 @@ const StudentScheduleCalendarPage = () => {
                 end: event.end,
                 therapistId: event.therapistId,
                 roomId: event.roomId,
-                studentId: studentId,
-                // studentClassId: event.studentClassId,
+                studentClassId: event.studentClassId,
+                studentIds: event.studentIds ?? [],
             });
         }
     };
@@ -126,6 +126,7 @@ const StudentScheduleCalendarPage = () => {
             start: startDateTime,
             end: endDateTime.toISOString(),
             therapistId: undefined,
+            studentClassId: undefined,
         });
 
         setFormValues({
@@ -133,24 +134,28 @@ const StudentScheduleCalendarPage = () => {
             start: startDateTime,
             end: endDateTime.toISOString(),
             therapistId: undefined,
+            studentIds: [],
+            studentClassId: undefined,
         });
         setErrorMessage(null);
     };
 
     const handleSaveEdit = () => {
         if (!formValues) return;
-        const dto: ScheduleSlotDto = convertFormValuesToScheduleSlotDto(formValues);
-        dto.studentId = Number(studentId);
-        const slotId = selectedSlot?.slotId;
 
-        if (slotId) {
-            updateSchedule.mutate({ id: slotId, data: dto }, { onError: handleMutationError });
-            setSelectedSlot(null);
-        } else if (studentId) {
-            createSlot.mutate({ studentId, data: dto }, { onError: handleMutationError });
+        const dto: ScheduleSlotDto = convertFormValuesToScheduleSlotDto(formValues);
+
+        if (selectedSlot?.slotId) {
+            dto.studentIds = selectedSlot.studentIds ?? [];
+            updateSchedule.mutate(
+                { id: selectedSlot.slotId, data: dto },
+                { onError: handleMutationError }
+            );
             setSelectedSlot(null);
         } else {
-            setErrorMessage('Nie można utworzyć slotu – brak ID studenta');
+            dto.studentIds = [studentId];
+            createSlot.mutate({ studentId, data: dto }, { onError: handleMutationError });
+            setSelectedSlot(null);
         }
     };
 

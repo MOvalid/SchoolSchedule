@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import StudentSchedulePage from './components/pages/StudentSchedulePage';
 import StudentScheduleCalendarPage from './components/pages/schedules/StudentScheduleCalendarPage';
+// import StudentScheduleCalendarPage from './components/student/StudentScheduleCalendarPage';
 import ClassSchedulePage from './components/pages/ClassSchedulePage';
 import TherapistSchedulePage from './components/pages/TherapistSchedulePage';
 import { AppBar, Toolbar, Button, Box, Typography } from '@mui/material';
