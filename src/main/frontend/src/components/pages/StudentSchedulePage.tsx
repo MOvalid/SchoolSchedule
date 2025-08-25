@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchSelect from '../common/SearchSelect';
 import { StudentDto } from '../../types/types';
 import { getAllStudents } from '../../services/StudentService';
+import { EntityTypesEnum } from '../../types/entityTypes';
 
 const StudentSchedulePage: React.FC = () => {
     const [students, setStudents] = useState<StudentDto[]>([]);
@@ -23,6 +24,8 @@ const StudentSchedulePage: React.FC = () => {
             navigate(`/schedule/student/${id}`, {
                 state: {
                     name: `${student.firstName} ${student.lastName}`,
+                    entityId: id,
+                    entityType: EntityTypesEnum.Student,
                 },
             });
         }

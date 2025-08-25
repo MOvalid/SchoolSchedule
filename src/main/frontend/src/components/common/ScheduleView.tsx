@@ -2,14 +2,14 @@ import React, { useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
-import { EventClickArg } from '@fullcalendar/core';
+import interactionPlugin from '@fullcalendar/interaction';
+import {EventChangeArg, EventClickArg} from '@fullcalendar/core';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { ScheduleSlotDto } from '../../types/types';
 
 interface ScheduleViewProps {
     initialEvents: ScheduleSlotDto[];
-    onUpdateEvent?: (event: ScheduleSlotDto) => void;
+    onUpdateEvent?: (_: ScheduleSlotDto) => void;
     onClear?: () => void;
 }
 
@@ -17,12 +17,12 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ initialEvents, onUpdateEven
     const calendarRef = useRef<FullCalendar>(null);
     const [events, setEvents] = useState(initialEvents);
 
-    const handleEventChange = (changeInfo: any) => {
+    const handleEventChange = (changeInfo: EventChangeArg) => {
         const updatedEvent = {
             ...changeInfo.event.extendedProps,
             id: Number(changeInfo.event.id),
-            startTime: changeInfo.event.start.toISOString(),
-            endTime: changeInfo.event.end.toISOString(),
+            startTime: changeInfo.event.start?.toISOString(),
+            endTime: changeInfo.event.end?.toISOString(),
         };
         if (onUpdateEvent) onUpdateEvent(updatedEvent);
         setEvents((prev) => prev.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev)));

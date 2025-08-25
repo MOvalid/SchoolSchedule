@@ -3,6 +3,7 @@ package com.MSPDiON.SchoolSchedule.repository;
 import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalTime;
@@ -36,4 +37,19 @@ public interface ScheduleSlotRepository extends JpaRepository<ScheduleSlot, Long
         AND s.startTime < :endTime AND s.endTime > :startTime
     """)
     List<ScheduleSlot> findConflictsByStudent(Long studentId, LocalTime startTime, LocalTime endTime);
+
+    @Query("""
+    SELECT s FROM ScheduleSlot s
+    WHERE s.therapist.id = :therapistId
+      AND s.dayOfWeek = :dayOfWeek
+      AND s.id <> :slotId
+      AND (s.startTime < :end AND s.endTime > :start)
+""")
+    List<ScheduleSlot> findConflictsByTherapistAndDayExcludingSlot(
+            @Param("therapistId") Long therapistId,
+            @Param("dayOfWeek") int dayOfWeek,
+            @Param("start") LocalTime start,
+            @Param("end") LocalTime end,
+            @Param("slotId") Long slotId
+    );
 }

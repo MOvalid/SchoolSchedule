@@ -10,6 +10,7 @@ import {
 } from '../services/ScheduleService';
 import { ScheduleSlotDto } from '../types/types';
 import { EntityType } from '../types/entityTypes';
+import { AxiosError } from "axios";
 
 export const useSchedules = () =>
     useQuery({
@@ -17,20 +18,72 @@ export const useSchedules = () =>
         queryFn: async () => (await getAllScheduleSlots()).data,
     });
 
-export const useCreateSchedule = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: ScheduleSlotDto) => createScheduleSlot(data),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
-    });
-};
+// export const useCreateSchedule = (onError?: (message: string) => void) => {
+//     const queryClient = useQueryClient();
+//     return useMutation({
+//         mutationFn: (data: ScheduleSlotDto) => createScheduleSlot(data),
+//         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
+//         onError: (error: any) => {
+//             const message = error?.response?.data?.message || 'Unexpected error occurred';
+//             if (onError) onError(message);
+//         },
+//     });
+// };
 
-export const useUpdateSchedule = () => {
+export const useUpdateScheduleSlot = (onError?: (_message: string) => void) => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ id, data }: { id: number; data: ScheduleSlotDto }) =>
             updateScheduleSlot(id, data),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
+        onError: (error: unknown) => {
+            let message = 'Unexpected error occurred';
+            if (error instanceof AxiosError) {
+                message = error.response?.data?.message || message;
+            }
+            if (onError) onError(message);
+        },
+    });
+};
+
+// export const useCreateScheduleSlot = (
+//     entityType: EntityType,
+//     onError?: (message: string) => void
+// ) => {
+//     const queryClient = useQueryClient();
+//
+//     return useMutation({
+//         mutationFn: (data: ScheduleSlotDto) => createScheduleSlot(data),
+//         onSuccess: () => {
+//             queryClient.invalidateQueries({ queryKey: ['schedules', entityType] });
+//         },
+//         onError: (error: any) => {
+//             const message = error?.response?.data?.message || 'Unexpected error occurred';
+//             if (onError) onError(message);
+//         },
+//     });
+// };
+
+interface CreateStudentSlotProps {
+    studentId: number;
+    data: ScheduleSlotDto;
+}
+
+export const useCreateStudentScheduleSlot = (onError?: (_message: string) => void) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ studentId, data }: CreateStudentSlotProps) =>
+            createScheduleSlot(studentId, data),
+        onSuccess: (_, { studentId }) => {
+            queryClient.invalidateQueries({ queryKey: ['schedule', 'student', studentId] });
+        },
+        onError: (error: unknown) => {
+            let message = 'Unexpected error occurred';
+            if (error instanceof AxiosError) {
+                message = error.response?.data?.message || message;
+            }
+            if (onError) onError(message);
+        },
     });
 };
 

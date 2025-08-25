@@ -29,11 +29,23 @@ export interface StudentClassDto {
 }
 
 export interface Slot {
-    id?: string;
+    id?: string; // ID generowane przez FullCalendar
+    slotId?: number; // ID z backendu (ScheduleSlotDto.id)
     title: string;
     therapistId?: number;
+    roomId?: number;
     start: string; // ISO format, np. "2025-01-06T09:00:00"
     end: string;
+}
+
+export interface SlotFormValues {
+    title: string;
+    start: string;
+    end: string;
+    therapistId?: number;
+    roomId?: number;
+    studentId?: number;
+    studentClassId?: number;
 }
 
 export interface ScheduleSlotDto {

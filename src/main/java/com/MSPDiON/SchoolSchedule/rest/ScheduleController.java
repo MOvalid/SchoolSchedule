@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.rest;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,10 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
 
-    @PostMapping
-    public ResponseEntity<ScheduleSlotDto> create(@RequestBody ScheduleSlotDto dto) {
-        return ResponseEntity.ok(scheduleService.createScheduleSlot(dto));
-    }
+//    @PostMapping
+//    public ResponseEntity<ScheduleSlotDto> create(@RequestBody ScheduleSlotDto dto) {
+//        return ResponseEntity.ok(scheduleService.createScheduleSlot(dto));
+//    }
 
     @GetMapping
     public List<ScheduleSlotDto> getAll() {
@@ -55,4 +56,25 @@ public class ScheduleController {
         scheduleService.deleteScheduleSlot(id);
         return ResponseEntity.noContent().build();
     }
+
+//    @PostMapping("/student/{id}")
+//    public ResponseEntity<String> checkStudentScheduleUpdate(@RequestBody StudentScheduleCheckDto dto) {
+//        LocalTime start = LocalTime.parse(dto.getStartTime());
+//        LocalTime end = LocalTime.parse(dto.getEndTime());
+//
+//        try {
+//            scheduleService.checkStudentUpdateConflicts(dto.getScheduleSlotId(), dto.getTherapistId(), dto.getStudentId(), dto.getStudentClassId(), dto.getDayOfWeek(), start, end);
+//            return ResponseEntity.ok("No conflicts");
+//        } catch (IllegalArgumentException ex) {
+//            return ResponseEntity.badRequest().body(ex.getMessage());
+//        }
+//    }
+
+    @PostMapping("/student/{id}")
+    public ResponseEntity<ScheduleSlotDto> createSlotForStudent(@PathVariable Long id, @RequestBody CreateScheduleSlotDto dto) {
+        System.out.println(dto);
+        ScheduleSlotDto created = scheduleService.createScheduleSlot(dto);
+        return ResponseEntity.ok(created);
+    }
+
 }

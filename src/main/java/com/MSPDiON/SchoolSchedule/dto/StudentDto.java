@@ -17,5 +17,5 @@ public class StudentDto {
     private String lastName;
     private LocalTime arrivalTime;
     private LocalTime departureTime;
-    private Long studentClassId; // referencja, nie cały obiekt
+    private Long studentClassId;
 }

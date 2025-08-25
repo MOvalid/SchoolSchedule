@@ -1,4 +1,4 @@
-import { ScheduleSlotDto, Slot } from '../types/types';
+import { ScheduleSlotDto, Slot, SlotFormValues } from '../types/types';
 
 const getMondayOfCurrentWeekUTC = (): Date => {
     const now = new Date();
@@ -10,19 +10,23 @@ const getMondayOfCurrentWeekUTC = (): Date => {
 };
 
 const createUTCDateTime = (mondayUTC: Date, dayOfWeek: number, timeStr: string): string => {
-    const [hour, minute] = timeStr.split(':').map(Number);
+    console.log(mondayUTC);
+    console.log(dayOfWeek);
+    console.log(timeStr);
+    const [hour, minute, second = '0'] = timeStr.split(':');
+    console.log(hour);
+    console.log(minute);
     const date = new Date(
         Date.UTC(
             mondayUTC.getUTCFullYear(),
             mondayUTC.getUTCMonth(),
             mondayUTC.getUTCDate() + (dayOfWeek - 1),
-            hour,
-            minute,
-            0,
-            0
+            Number(hour),
+            Number(minute),
+            Number(second)
         )
     );
-    return date.toISOString(); // zawsze UTC
+    return date.toISOString();
 };
 
 export const convertScheduleSlotDto = (slot: ScheduleSlotDto): Slot => {
@@ -33,5 +37,37 @@ export const convertScheduleSlotDto = (slot: ScheduleSlotDto): Slot => {
         title: slot.title ?? 'Zajęcia',
         start: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.startTime),
         end: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.endTime),
+    };
+};
+
+export const convertScheduleSlotDto2 = (
+    slot: ScheduleSlotDto
+): Slot & { slotId?: number; extendedProps?: unknown } => {
+    const mondayUTC = getMondayOfCurrentWeekUTC();
+    return {
+        id: crypto.randomUUID(), // FullCalendar ID
+        slotId: slot.id, // backend ID
+        title: slot.title ?? 'Zajęcia',
+        start: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.startTime),
+        end: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.endTime),
+        extendedProps: {
+            therapistId: slot.therapistId,
+            roomId: slot.roomId,
+            studentId: slot.studentId,
+            studentClassId: slot.studentClassId,
+        },
+    };
+};
+
+export const convertFormValuesToScheduleSlotDto = (formValues: SlotFormValues): ScheduleSlotDto => {
+    return {
+        title: formValues.title,
+        startTime: formValues.start,
+        endTime: formValues.end,
+        dayOfWeek: new Date(formValues.start).getDay(),
+        therapistId: formValues.therapistId,
+        roomId: formValues.roomId,
+        studentId: formValues.studentId,
+        studentClassId: formValues.studentClassId,
     };
 };

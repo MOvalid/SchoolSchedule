@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { EventClickArg } from '@fullcalendar/core';
+import { DateClickArg } from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -16,12 +18,20 @@ import {
     TextField,
     MenuItem,
 } from '@mui/material';
-import { ScheduleSlotDto, Slot, TherapistDto } from '../../../types/types';
+import { RoomDto, ScheduleSlotDto, Slot, SlotFormValues, TherapistDto } from '../../../types/types';
 import { EntityType } from '../../../types/entityTypes';
 import plLocale from '@fullcalendar/core/locales/pl';
-import { convertScheduleSlotDto } from '../../../utils/ScheduleSlotConverter';
-import { useSchedule } from '../../../hooks/useSchedules';
+import {
+    convertFormValuesToScheduleSlotDto,
+    convertScheduleSlotDto2,
+} from '../../../utils/ScheduleSlotConverter';
+import {
+    useCreateStudentScheduleSlot,
+    useSchedule,
+    useUpdateScheduleSlot,
+} from '../../../hooks/useSchedules';
 import { getAllTherapists } from '../../../services/TherapistService';
+import { getAllRooms } from '../../../services/RoomService';
 
 interface LocationState {
     entityType: EntityType;
@@ -32,89 +42,106 @@ interface LocationState {
 const StudentScheduleCalendarPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const calendarRef = useRef<FullCalendar>(null);
 
-    const { entityType, entityId, name } = location.state as LocationState;
+    const { entityType, entityId: studentId, name } = location.state as LocationState;
 
     const [events, setEvents] = useState<Slot[]>([]);
     const [editMode, setEditMode] = useState(false);
-    const [selectedEvent, setSelectedEvent] = useState<Slot | null>(null);
-    const [startInput, setStartInput] = useState('');
-    const [endInput, setEndInput] = useState('');
-    const [titleInput, setTitleInput] = useState('');
-    const [therapistId, setTherapistId] = useState<number | undefined>(undefined);
+    const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+    const [formValues, setFormValues] = useState<SlotFormValues>({
+        title: '',
+        start: '',
+        end: '',
+        therapistId: undefined,
+        roomId: undefined,
+        studentId: undefined,
+        studentClassId: undefined,
+    });
     const [therapists, setTherapists] = useState<TherapistDto[]>([]);
+    const [rooms, setRooms] = useState<RoomDto[]>([]);
 
-    const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, entityId);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, studentId);
+    const updateSchedule = useUpdateScheduleSlot((msg) => setErrorMessage(msg));
+
+    const createSlot = useCreateStudentScheduleSlot((msg) => setErrorMessage(msg));
 
     useEffect(() => {
         getAllTherapists().then((res) => setTherapists(res.data));
     }, []);
 
     useEffect(() => {
+        getAllRooms().then((res) => setRooms(res.data));
+    }, []);
+
+    useEffect(() => {
         if (rawSchedule.length) {
-            setEvents(rawSchedule.map(convertScheduleSlotDto));
+            setEvents(rawSchedule.map(convertScheduleSlotDto2));
         }
     }, [rawSchedule]);
 
-    const handleEventClick = (arg: any) => {
+    const handleEventClick = (arg: EventClickArg) => {
         if (!editMode) return;
 
         const event = events.find((e) => e.id === arg.event.id);
         if (event) {
-            setSelectedEvent(event);
-            const normalizedStart = event.start.slice(11, 16);
-            const normalizedEnd = event.end.slice(11, 16);
-            setStartInput(normalizedStart);
-            setEndInput(normalizedEnd);
-            setTitleInput(event.title || '');
-            setTherapistId(event.therapistId);
+            setSelectedSlot(event);
+            setFormValues({
+                title: event.title || '',
+                start: event.start,
+                end: event.end,
+                therapistId: event.therapistId,
+                roomId: event.roomId,
+                studentId: studentId,
+                // studentClassId: event.studentClassId,
+            });
         }
     };
 
-    const handleSaveEdit = () => {
-        if (!selectedEvent) return;
-
-        const day = new Date(selectedEvent.start);
-        const dateString = day.toISOString().split('T')[0];
-
-        const updatedEvent: Slot = {
-            ...selectedEvent,
-            start: `${dateString}T${startInput}:00`,
-            end: `${dateString}T${endInput}:00`,
-            title: titleInput,
-            therapistId: therapistId,
-        };
-
-        setEvents((prevEvents) => {
-            const exists = prevEvents.find((ev) => ev.id === selectedEvent.id);
-            if (exists) {
-                return prevEvents.map((ev) => (ev.id === selectedEvent.id ? updatedEvent : ev));
-            } else {
-                return [...prevEvents, updatedEvent];
-            }
-        });
-
-        setSelectedEvent(null);
-    };
-
-    const handleDateClick = (arg: any) => {
+    const handleDateClick = (arg: DateClickArg) => {
         if (!editMode) return;
 
         const startDateTime = arg.dateStr;
         const endDateTime = new Date(arg.date);
         endDateTime.setHours(endDateTime.getHours() + 1);
 
-        setSelectedEvent({
+        setSelectedSlot({
             id: `new-${Date.now()}`,
             title: '',
             start: startDateTime,
             end: endDateTime.toISOString(),
             therapistId: undefined,
         });
-        setStartInput(startDateTime.slice(11, 16));
-        setEndInput(endDateTime.toISOString().slice(11, 16));
-        setTitleInput('');
-        setTherapistId(undefined);
+
+        setFormValues({
+            title: '',
+            start: startDateTime,
+            end: endDateTime.toISOString(),
+            therapistId: undefined,
+        });
+        setErrorMessage(null);
+    };
+
+    const handleSaveEdit = () => {
+        if (!formValues) return;
+        const dto: ScheduleSlotDto = convertFormValuesToScheduleSlotDto(formValues);
+        dto.studentId = Number(studentId);
+        const slotId = selectedSlot?.slotId;
+
+        console.log(dto.studentId);
+        console.log(typeof dto.studentId);
+
+        if (slotId) {
+            updateSchedule.mutate({ id: slotId, data: dto });
+            setSelectedSlot(null);
+        } else if (studentId) {
+            createSlot.mutate({ studentId: studentId, data: dto });
+            setSelectedSlot(null);
+        } else {
+            setErrorMessage('Nie można utworzyć slotu – brak ID studenta');
+        }
     };
 
     if (isLoading) return <Typography>Ładowanie grafiku...</Typography>;
@@ -143,6 +170,7 @@ const StudentScheduleCalendarPage = () => {
             </Stack>
 
             <FullCalendar
+                ref={calendarRef}
                 plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
                 dateClick={handleDateClick}
                 initialView="timeGridWeek"
@@ -166,23 +194,25 @@ const StudentScheduleCalendarPage = () => {
             />
 
             {/* Edycja wydarzenia */}
-            <Dialog open={!!selectedEvent} onClose={() => setSelectedEvent(null)}>
+            <Dialog open={!!selectedSlot} onClose={() => setSelectedSlot(null)}>
                 <DialogTitle>Edytuj zajęcia</DialogTitle>
                 <DialogContent>
                     <TextField
                         label="Nazwa zajęć"
                         fullWidth
                         margin="dense"
-                        value={titleInput}
-                        onChange={(e) => setTitleInput(e.target.value)}
+                        value={formValues.title}
+                        onChange={(e) => setFormValues({ ...formValues, title: e.target.value })}
                     />
                     <TextField
                         label="Terapeuta"
                         select
                         fullWidth
                         margin="dense"
-                        value={therapistId}
-                        onChange={(e) => setTherapistId(Number(e.target.value))}
+                        value={formValues.therapistId}
+                        onChange={(e) =>
+                            setFormValues({ ...formValues, therapistId: Number(e.target.value) })
+                        }
                     >
                         {therapists.map((t) => (
                             <MenuItem key={t.id} value={t.id}>
@@ -191,25 +221,62 @@ const StudentScheduleCalendarPage = () => {
                         ))}
                     </TextField>
                     <TextField
+                        label="Sala"
+                        select
+                        fullWidth
+                        margin="dense"
+                        value={formValues.roomId}
+                        onChange={(e) =>
+                            setFormValues({ ...formValues, roomId: Number(e.target.value) })
+                        }
+                    >
+                        {rooms.map((r) => (
+                            <MenuItem key={r.id} value={r.id}>
+                                {r.name}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+
+                    <TextField
                         label="Godzina rozpoczęcia"
                         type="time"
                         fullWidth
                         margin="dense"
-                        value={startInput}
-                        onChange={(e) => setStartInput(e.target.value)}
+                        value={formValues.start.slice(11, 16)}
+                        onChange={(e) =>
+                            setFormValues({
+                                ...formValues,
+                                start: formValues.start.slice(0, 11) + e.target.value,
+                            })
+                        }
                     />
                     <TextField
                         label="Godzina zakończenia"
                         type="time"
                         fullWidth
                         margin="dense"
-                        value={endInput}
-                        onChange={(e) => setEndInput(e.target.value)}
+                        value={formValues.end.slice(11, 16)}
+                        onChange={(e) =>
+                            setFormValues({
+                                ...formValues,
+                                end: formValues.end.slice(0, 11) + e.target.value,
+                            })
+                        }
                     />
+
+                    {errorMessage && (
+                        <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                            {errorMessage}
+                        </Typography>
+                    )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setSelectedEvent(null)}>Anuluj</Button>
-                    <Button onClick={handleSaveEdit} variant="contained">
+                    <Button onClick={() => setSelectedSlot(null)}>Anuluj</Button>
+                    <Button
+                        onClick={handleSaveEdit}
+                        variant="contained"
+                        disabled={updateSchedule.isPending || createSlot.isPending}
+                    >
                         Zapisz
                     </Button>
                 </DialogActions>

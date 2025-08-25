@@ -16,12 +16,14 @@ public class ScheduleSlotDto {
     private Long id;
 
     private Long therapistId;
+    private Long studentId;
     private Long roomId;
 
     private boolean individual;
     private Long studentClassId;
     private Set<Long> studentIds;
 
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private String startTime;
+    private String endTime;
+    private int dayOfWeek;
 }

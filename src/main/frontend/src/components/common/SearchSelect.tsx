@@ -5,7 +5,7 @@ interface SearchSelectProps {
     label: string;
     items: { id: number; label: string }[];
     value: number | null;
-    onChange: (value: number | null) => void;
+    onChange: (_: number | null) => void;
 }
 
 const SearchSelect: React.FC<SearchSelectProps> = ({ label, items, value, onChange }) => {

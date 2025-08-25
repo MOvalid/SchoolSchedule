@@ -14,8 +14,8 @@ export const getScheduleForStudent = (id: number) =>
 export const getScheduleForClass = (id: number) =>
     api.get<ScheduleSlotDto[]>(`/schedules/class/${id}`);
 
-export const createScheduleSlot = (data: ScheduleSlotDto) =>
-    api.post<ScheduleSlotDto>('/schedules', data);
+export const createScheduleSlot = (studentId: number, data: ScheduleSlotDto) =>
+    api.post<ScheduleSlotDto>(`/schedules/student/${studentId}`, data);
 
 export const updateScheduleSlot = (id: number, data: ScheduleSlotDto) =>
     api.put<ScheduleSlotDto>(`/schedules/${id}`, data);

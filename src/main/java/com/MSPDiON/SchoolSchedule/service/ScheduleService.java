@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.service;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.ScheduleMapper;
 import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
@@ -9,6 +10,7 @@ import com.MSPDiON.SchoolSchedule.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -23,7 +25,7 @@ public class ScheduleService {
 
     private final ScheduleMapper scheduleMapper;
 
-    public ScheduleSlotDto createScheduleSlot(ScheduleSlotDto dto) {
+    public ScheduleSlotDto createScheduleSlot(CreateScheduleSlotDto dto) {
         ScheduleSlot entity = scheduleMapper.toEntity(dto);
         validateSlot(entity);
         return scheduleMapper.toDto(scheduleSlotRepository.save(entity));
@@ -161,4 +163,50 @@ public class ScheduleService {
         }
         scheduleSlotRepository.deleteById(id);
     }
+
+    public void checkStudentUpdateConflicts(
+            Long slotId,
+            Long therapistId,
+            Long studentId,
+            Long classId,
+            int dayOfWeek,
+            LocalTime start,
+            LocalTime end
+    ) {
+        checkTherapistConflicts(slotId, therapistId, dayOfWeek, start, end);
+
+        // TODO: checkClassConflicts(slotId, classId, dayOfWeek, start, end);
+
+        // TODO: checkStudentConflicts(slotId, studentId, dayOfWeek, start, end);
+    }
+
+    private void checkTherapistConflicts(Long slotId, Long therapistId, int dayOfWeek, LocalTime start, LocalTime end) {
+        List<ScheduleSlot> conflicts = scheduleSlotRepository.findConflictsByTherapistAndDayExcludingSlot(
+                therapistId, dayOfWeek, start, end, slotId
+        );
+
+        if (!conflicts.isEmpty()) {
+            throw new IllegalArgumentException(buildTherapistConflictMessage(conflicts));
+        }
+    }
+
+    private String buildTherapistConflictMessage(List<ScheduleSlot> conflicts) {
+        StringBuilder msg = new StringBuilder("Therapist has a scheduling conflict:\n");
+        for (ScheduleSlot conflict : conflicts) {
+            if (conflict.getStudentClass() != null) {
+                msg.append("Class: ").append(conflict.getStudentClass().getName())
+                        .append(", Time: ").append(conflict.getStartTime()).append(" - ").append(conflict.getEndTime())
+                        .append("\n");
+            }
+            if (conflict.getStudents() != null && !conflict.getStudents().isEmpty()) {
+                for (Student s : conflict.getStudents()) {
+                    msg.append("Student: ").append(s.getFirstName()).append(" ").append(s.getLastName())
+                            .append(", Time: ").append(conflict.getStartTime()).append(" - ").append(conflict.getEndTime())
+                            .append("\n");
+                }
+            }
+        }
+        return msg.toString().trim();
+    }
+
 }
