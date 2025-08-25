@@ -10,7 +10,7 @@ import {
 } from '../services/ScheduleService';
 import { ScheduleSlotDto } from '../types/types';
 import { EntityType } from '../types/entityTypes';
-import { AxiosError } from "axios";
+import { AxiosError } from 'axios';
 
 export const useSchedules = () =>
     useQuery({

@@ -40,9 +40,7 @@ export const convertScheduleSlotDto = (slot: ScheduleSlotDto): Slot => {
     };
 };
 
-export const convertScheduleSlotDto2 = (
-    slot: ScheduleSlotDto
-): Slot & { slotId?: number; extendedProps?: unknown } => {
+export const convertScheduleSlotDto2 = (slot: ScheduleSlotDto): Slot => {
     const mondayUTC = getMondayOfCurrentWeekUTC();
     return {
         id: crypto.randomUUID(), // FullCalendar ID
@@ -50,12 +48,10 @@ export const convertScheduleSlotDto2 = (
         title: slot.title ?? 'Zajęcia',
         start: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.startTime),
         end: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.endTime),
-        extendedProps: {
-            therapistId: slot.therapistId,
-            roomId: slot.roomId,
-            studentId: slot.studentId,
-            studentClassId: slot.studentClassId,
-        },
+        therapistId: slot.therapistId,
+        roomId: slot.roomId,
+        studentId: slot.studentId,
+        studentClassId: slot.studentClassId,
     };
 };
 

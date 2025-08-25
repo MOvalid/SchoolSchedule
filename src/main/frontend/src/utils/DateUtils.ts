@@ -34,3 +34,7 @@ export const addTimezoneOffsetToTime = (time: string): string => {
 
     return `${localHours}:${localMinutes}`;
 };
+
+export const toISOTime = (dateStr: string, timeStr: string) => {
+    return new Date(`${dateStr}T${timeStr}:00Z`).toISOString();
+};

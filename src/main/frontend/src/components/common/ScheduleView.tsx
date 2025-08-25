@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import {EventChangeArg, EventClickArg} from '@fullcalendar/core';
+import { EventChangeArg, EventClickArg } from '@fullcalendar/core';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { ScheduleSlotDto } from '../../types/types';
 
@@ -18,12 +18,18 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ initialEvents, onUpdateEven
     const [events, setEvents] = useState(initialEvents);
 
     const handleEventChange = (changeInfo: EventChangeArg) => {
-        const updatedEvent = {
+        const prevEvent = events.find((ev) => ev.id === Number(changeInfo.event.id));
+
+        if (!prevEvent) return;
+
+        const updatedEvent: ScheduleSlotDto = {
+            ...prevEvent,
             ...changeInfo.event.extendedProps,
             id: Number(changeInfo.event.id),
-            startTime: changeInfo.event.start?.toISOString(),
-            endTime: changeInfo.event.end?.toISOString(),
+            startTime: changeInfo.event.start?.toISOString() || prevEvent.startTime,
+            endTime: changeInfo.event.end?.toISOString() || prevEvent.endTime,
         };
+
         if (onUpdateEvent) onUpdateEvent(updatedEvent);
         setEvents((prev) => prev.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev)));
     };

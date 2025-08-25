@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.handler;
 
+import com.MSPDiON.SchoolSchedule.exception.ConflictException;
 import com.MSPDiON.SchoolSchedule.exception.RoomNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentNotFoundException;
@@ -58,6 +59,17 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(ConflictException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                409,
+                ex.getMessage(),
+                LocalDateTime.now(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ResponseStatusException.class)

@@ -1,6 +1,7 @@
 package com.MSPDiON.SchoolSchedule.data;
 
 import com.MSPDiON.SchoolSchedule.model.Room;
+import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.model.Therapist;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Configuration
@@ -82,6 +84,18 @@ public class DataInitializer {
             room5.setName("Sala 105");
 
             roomRepository.saveAll(List.of(room1, room2, room3, room4, room5));
+
+            ScheduleSlot slot1 = ScheduleSlot.builder()
+                    .dayOfWeek(java.time.DayOfWeek.MONDAY)
+                    .startTime(LocalTime.of(6, 0))
+                    .endTime(LocalTime.of(7, 0))
+                    .therapist(therapist1)
+                    .room(room1)
+                    .isIndividual(true)
+                    .students(Set.of(student1, student2))
+                    .build();
+
+            scheduleSlotRepository.saveAll(List.of(slot1));
 
             log.info("Database initialized with mock data.");
         };

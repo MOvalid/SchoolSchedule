@@ -3,14 +3,17 @@ package com.MSPDiON.SchoolSchedule.service;
 import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.ScheduleMapper;
+import com.MSPDiON.SchoolSchedule.exception.ConflictException;
 import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.repository.*;
+import com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -46,11 +49,22 @@ public class ScheduleService {
     }
 
     private void validateSlot(ScheduleSlot slot) {
-        ensureTherapistHasClassOrStudents(slot);
-        checkTherapistAvailability(slot);
-        checkRoomAvailability(slot);
-        checkStudentConflicts(slot);
-        checkClassStudentConflicts(slot);
+        List<String> errorMessages = new ArrayList<>();
+
+        try {
+            ensureTherapistHasClassOrStudents(slot);
+        } catch (IllegalArgumentException e) {
+            errorMessages.add(e.getMessage());
+        }
+
+        errorMessages.addAll(checkTherapistAvailability(slot));
+        errorMessages.addAll(checkRoomAvailability(slot));
+        errorMessages.addAll(checkStudentConflicts(slot));
+        errorMessages.addAll(checkClassStudentConflicts(slot));
+
+        if (!errorMessages.isEmpty()) {
+            throw new ConflictException(String.join("\n", errorMessages));
+        }
     }
 
     private void ensureTherapistHasClassOrStudents(ScheduleSlot slot) {
@@ -58,34 +72,35 @@ public class ScheduleService {
         boolean hasStudents = slot.getStudents() != null && !slot.getStudents().isEmpty();
 
         if (!hasClass && !hasStudents) {
-            throw new IllegalArgumentException("Therapist must have either a whole class or at least one student.");
+            throw new IllegalArgumentException("Terapeuta musi mieć przypisaną klasę lub przynajmniej jednego ucznia.");
         }
     }
 
-    private void checkTherapistAvailability(ScheduleSlot slot) {
+    private List<String> checkTherapistAvailability(ScheduleSlot slot) {
         List<ScheduleSlot> conflicts = scheduleSlotRepository.findConflictsByTherapist(
                 slot.getTherapist().getId(),
                 slot.getStartTime(),
                 slot.getEndTime()
         );
-        if (!conflicts.isEmpty()) {
-            throw new IllegalArgumentException("Therapist has a scheduling conflict.");
-        }
+
+        if (conflicts.isEmpty()) return List.of();
+        return List.of(ConflictMessageBuilder.buildTherapistConflictMessage(slot, conflicts));
     }
 
-    private void checkRoomAvailability(ScheduleSlot slot) {
+    private List<String> checkRoomAvailability(ScheduleSlot slot) {
         List<ScheduleSlot> conflicts = scheduleSlotRepository.findConflictsByRoom(
                 slot.getRoom().getId(),
                 slot.getStartTime(),
                 slot.getEndTime()
         );
-        if (!conflicts.isEmpty()) {
-            throw new IllegalArgumentException("Room is occupied at the requested time.");
-        }
+
+        if (conflicts.isEmpty()) return List.of();
+        return List.of(ConflictMessageBuilder.buildRoomConflictMessage(slot, conflicts));
     }
 
-    private void checkStudentConflicts(ScheduleSlot slot) {
-        if (slot.getStudents() == null) return;
+    private List<String> checkStudentConflicts(ScheduleSlot slot) {
+        List<String> messages = new ArrayList<>();
+        if (slot.getStudents() == null) return messages;
 
         for (Student student : slot.getStudents()) {
             List<ScheduleSlot> conflicts = scheduleSlotRepository.findConflictsByStudent(
@@ -94,13 +109,15 @@ public class ScheduleService {
                     slot.getEndTime()
             );
             if (!conflicts.isEmpty()) {
-                throw new IllegalArgumentException("Student " + student.getFirstName() + " has a scheduling conflict.");
+                messages.add(ConflictMessageBuilder.buildStudentConflictMessage(student, conflicts));
             }
         }
+        return messages;
     }
 
-    private void checkClassStudentConflicts(ScheduleSlot slot) {
-        if (slot.getStudentClass() == null) return;
+    private List<String> checkClassStudentConflicts(ScheduleSlot slot) {
+        List<String> messages = new ArrayList<>();
+        if (slot.getStudentClass() == null) return messages;
 
         StudentClass studentClass = slot.getStudentClass();
         List<Student> classStudents = studentRepository.findByStudentClass_Id(studentClass.getId());
@@ -112,10 +129,11 @@ public class ScheduleService {
                     slot.getEndTime()
             );
             if (!conflicts.isEmpty()) {
-                throw new IllegalArgumentException("Student " + student.getFirstName()
-                        + " from class " + studentClass.getName() + " has a scheduling conflict.");
+                messages.add("Uczeń " + student.getFirstName() + " " + student.getLastName()
+                        + " z klasy " + studentClass.getName() + " ma konflikt w grafiku.");
             }
         }
+        return messages;
     }
 
     public List<ScheduleSlotDto> getAllScheduleSlots() {

@@ -34,6 +34,8 @@ export interface Slot {
     title: string;
     therapistId?: number;
     roomId?: number;
+    studentId?: number;
+    studentClassId?: number;
     start: string; // ISO format, np. "2025-01-06T09:00:00"
     end: string;
 }

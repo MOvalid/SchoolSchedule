@@ -1,7 +1,7 @@
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import reactPlugin from "eslint-plugin-react";
-import prettierPlugin from "eslint-plugin-prettier";
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import reactPlugin from 'eslint-plugin-react';
+import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
     js.configs.recommended,
@@ -12,14 +12,14 @@ export default [
             prettier: prettierPlugin,
         },
         rules: {
-            "prettier/prettier": "warn",
-            "no-unused-vars": "warn",
-            "react/react-in-jsx-scope": "off", // dla React 17+
-            "react/prop-types": "off",
+            'prettier/prettier': 'warn',
+            'no-unused-vars': 'warn',
+            'react/react-in-jsx-scope': 'off', // dla React 17+
+            'react/prop-types': 'off',
         },
         settings: {
             react: {
-                version: "detect",
+                version: 'detect',
             },
         },
     },

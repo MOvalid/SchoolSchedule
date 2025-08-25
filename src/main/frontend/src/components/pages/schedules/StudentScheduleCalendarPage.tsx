@@ -32,6 +32,8 @@ import {
 } from '../../../hooks/useSchedules';
 import { getAllTherapists } from '../../../services/TherapistService';
 import { getAllRooms } from '../../../services/RoomService';
+import { toISOTime } from '../../../utils/DateUtils';
+import { AxiosError } from 'axios';
 
 interface LocationState {
     entityType: EntityType;
@@ -60,19 +62,14 @@ const StudentScheduleCalendarPage = () => {
     });
     const [therapists, setTherapists] = useState<TherapistDto[]>([]);
     const [rooms, setRooms] = useState<RoomDto[]>([]);
-
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, studentId);
-    const updateSchedule = useUpdateScheduleSlot((msg) => setErrorMessage(msg));
-
-    const createSlot = useCreateStudentScheduleSlot((msg) => setErrorMessage(msg));
+    const updateSchedule = useUpdateScheduleSlot();
+    const createSlot = useCreateStudentScheduleSlot();
 
     useEffect(() => {
         getAllTherapists().then((res) => setTherapists(res.data));
-    }, []);
-
-    useEffect(() => {
         getAllRooms().then((res) => setRooms(res.data));
     }, []);
 
@@ -81,6 +78,22 @@ const StudentScheduleCalendarPage = () => {
             setEvents(rawSchedule.map(convertScheduleSlotDto2));
         }
     }, [rawSchedule]);
+
+    const handleMutationError = (error: unknown) => {
+        if (error instanceof AxiosError) {
+            if (error.response?.status === 409) {
+                alert(error.response.data?.message || 'Conflict occurred while saving slot.');
+            } else {
+                setErrorMessage(
+                    error.response?.data?.message || 'Nieoczekiwany błąd podczas zapisu.'
+                );
+            }
+        } else if (error instanceof Error) {
+            setErrorMessage(error.message);
+        } else {
+            setErrorMessage('Nieoczekiwany błąd podczas zapisu.');
+        }
+    };
 
     const handleEventClick = (arg: EventClickArg) => {
         if (!editMode) return;
@@ -130,14 +143,11 @@ const StudentScheduleCalendarPage = () => {
         dto.studentId = Number(studentId);
         const slotId = selectedSlot?.slotId;
 
-        console.log(dto.studentId);
-        console.log(typeof dto.studentId);
-
         if (slotId) {
-            updateSchedule.mutate({ id: slotId, data: dto });
+            updateSchedule.mutate({ id: slotId, data: dto }, { onError: handleMutationError });
             setSelectedSlot(null);
         } else if (studentId) {
-            createSlot.mutate({ studentId: studentId, data: dto });
+            createSlot.mutate({ studentId, data: dto }, { onError: handleMutationError });
             setSelectedSlot(null);
         } else {
             setErrorMessage('Nie można utworzyć slotu – brak ID studenta');
@@ -243,12 +253,13 @@ const StudentScheduleCalendarPage = () => {
                         fullWidth
                         margin="dense"
                         value={formValues.start.slice(11, 16)}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                            const datePart = formValues.start.slice(0, 10);
                             setFormValues({
                                 ...formValues,
-                                start: formValues.start.slice(0, 11) + e.target.value,
-                            })
-                        }
+                                start: toISOTime(datePart, e.target.value),
+                            });
+                        }}
                     />
                     <TextField
                         label="Godzina zakończenia"
@@ -256,12 +267,13 @@ const StudentScheduleCalendarPage = () => {
                         fullWidth
                         margin="dense"
                         value={formValues.end.slice(11, 16)}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                            const datePart = formValues.end.slice(0, 10);
                             setFormValues({
                                 ...formValues,
-                                end: formValues.end.slice(0, 11) + e.target.value,
-                            })
-                        }
+                                end: toISOTime(datePart, e.target.value),
+                            });
+                        }}
                     />
 
                     {errorMessage && (
