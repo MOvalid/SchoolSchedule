@@ -37,6 +37,14 @@ const SlotDialog: React.FC<Props> = ({
     errorMessage,
     saving,
 }) => {
+    const handleTimeChange = (field: 'start' | 'end', value: string) => {
+        const datePart = formValues[field].slice(0, 10);
+        setFormValues({
+            ...formValues,
+            [field]: toISOTime(datePart, value),
+        });
+    };
+
     if (!slot) return null;
 
     return (
@@ -88,13 +96,7 @@ const SlotDialog: React.FC<Props> = ({
                     fullWidth
                     margin="dense"
                     value={formValues.start.slice(11, 16)}
-                    onChange={(e) => {
-                        const datePart = formValues.start.slice(0, 10);
-                        setFormValues({
-                            ...formValues,
-                            start: toISOTime(datePart, e.target.value),
-                        });
-                    }}
+                    onChange={(e) => handleTimeChange('start', e.target.value)}
                 />
                 <TextField
                     label="Godzina zakończenia"
@@ -102,13 +104,7 @@ const SlotDialog: React.FC<Props> = ({
                     fullWidth
                     margin="dense"
                     value={formValues.end.slice(11, 16)}
-                    onChange={(e) => {
-                        const datePart = formValues.end.slice(0, 10);
-                        setFormValues({
-                            ...formValues,
-                            end: toISOTime(datePart, e.target.value),
-                        });
-                    }}
+                    onChange={(e) => handleTimeChange('end', e.target.value)}
                 />
 
                 {errorMessage && (

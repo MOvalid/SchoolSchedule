@@ -129,14 +129,13 @@ const StudentScheduleCalendarPage: React.FC = () => {
         const slotId = selectedSlot?.slotId;
 
         if (slotId) {
+            dto.studentIds = selectedSlot.studentIds ?? [];
             updateSchedule.mutate({ id: slotId, data: dto }, { onError: handleMutationError });
-            setSelectedSlot(null);
-        } else if (studentId) {
-            createSlot.mutate({ studentId, data: dto }, { onError: handleMutationError });
-            setSelectedSlot(null);
         } else {
-            setErrorMessage('Nie można utworzyć slotu – brak ID studenta');
+            dto.studentIds = [studentId];
+            createSlot.mutate({ studentId, data: dto }, { onError: handleMutationError });
         }
+        setSelectedSlot(null);
     };
 
     if (isLoading) return <Typography>Ładowanie grafiku...</Typography>;
