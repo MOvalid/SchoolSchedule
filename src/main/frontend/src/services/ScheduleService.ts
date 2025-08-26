@@ -18,6 +18,12 @@ export const createScheduleSlot = (studentId: number, data: ScheduleSlotDto) =>
     api.post<ScheduleSlotDto>(`/schedules/student/${studentId}`, data);
 
 export const updateScheduleSlot = (id: number, data: ScheduleSlotDto) =>
-    api.put<ScheduleSlotDto>(`/schedules/${id}`, data);
+    api.put<ScheduleSlotDto>(`/schedules/${id}/all`, data);
+
+export const updateStudentScheduleSlot = (studentId: number, id: number, data: ScheduleSlotDto) =>
+    api.put<ScheduleSlotDto>(`/schedules/${id}/student/${studentId}`, data);
 
 export const deleteScheduleSlot = (id: number) => api.delete(`/schedules/${id}`);
+
+export const deleteStudentScheduleSlot = (studentId: number, id: number) =>
+    api.delete<ScheduleSlotDto>(`/schedules/${id}/student/${studentId}`);

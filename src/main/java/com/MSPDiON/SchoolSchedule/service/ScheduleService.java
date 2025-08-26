@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -174,16 +175,33 @@ public class ScheduleService {
                 .toList();
     }
 
-    public ScheduleSlotDto updateScheduleSlot(Long id, ScheduleSlotDto dto) {
+    public ScheduleSlotDto updateScheduleSlotForAllStudents(Long id, ScheduleSlotDto dto) {
         ScheduleSlot existing = scheduleSlotRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Schedule slot not found with id: " + id));
 
         ScheduleSlot updated = scheduleMapper.toEntity(dto);
-        updated.setId(existing.getId());  // zachowaj ID
+        updated.setId(existing.getId());
 
         validateSlot(updated);
-        ScheduleSlot saved = scheduleSlotRepository.save(updated);
-        return scheduleMapper.toDto(saved);
+        return scheduleMapper.toDto(scheduleSlotRepository.save(updated));
+    }
+
+    public ScheduleSlotDto updateScheduleSlotForSingleStudent(Long id, Long studentId, ScheduleSlotDto dto) {
+        ScheduleSlot existing = scheduleSlotRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Schedule slot not found with id: " + id));
+
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found with id: " + studentId));
+
+        existing.getStudents().removeIf(s -> s.getId().equals(studentId));
+        scheduleSlotRepository.save(existing);
+
+        ScheduleSlot newSlot = scheduleMapper.toEntity(dto);
+        newSlot.setId(null);
+        newSlot.setStudents(Set.of(student));
+
+        validateSlot(newSlot);
+        return scheduleMapper.toDto(scheduleSlotRepository.save(newSlot));
     }
 
     public void deleteScheduleSlot(Long id) {
@@ -193,49 +211,25 @@ public class ScheduleService {
         scheduleSlotRepository.deleteById(id);
     }
 
-    public void checkStudentUpdateConflicts(
-            Long slotId,
-            Long therapistId,
-            Long studentId,
-            Long classId,
-            int dayOfWeek,
-            LocalTime start,
-            LocalTime end
-    ) {
-        checkTherapistConflicts(slotId, therapistId, dayOfWeek, start, end);
-
-        // TODO: checkClassConflicts(slotId, classId, dayOfWeek, start, end);
-
-        // TODO: checkStudentConflicts(slotId, studentId, dayOfWeek, start, end);
+    public void deleteScheduleSlotForAllStudents(Long id) {
+        if (!scheduleSlotRepository.existsById(id)) {
+            throw new RuntimeException("Schedule slot not found with id: " + id);
+        }
+        scheduleSlotRepository.deleteById(id);
     }
 
-    private void checkTherapistConflicts(Long slotId, Long therapistId, int dayOfWeek, LocalTime start, LocalTime end) {
-        List<ScheduleSlot> conflicts = scheduleSlotRepository.findConflictsByTherapistAndDayExcludingSlot(
-                therapistId, dayOfWeek, start, end, slotId
-        );
+    public void deleteScheduleSlotForSingleStudent(Long slotId, Long studentId) {
+        ScheduleSlot slot = scheduleSlotRepository.findById(slotId)
+                .orElseThrow(() -> new RuntimeException("Schedule slot not found with id: " + slotId));
 
-        if (!conflicts.isEmpty()) {
-            throw new IllegalArgumentException(buildTherapistConflictMessage(conflicts));
-        }
-    }
+        boolean removed = slot.getStudents().removeIf(s -> s.getId().equals(studentId));
 
-    private String buildTherapistConflictMessage(List<ScheduleSlot> conflicts) {
-        StringBuilder msg = new StringBuilder("Therapist has a scheduling conflict:\n");
-        for (ScheduleSlot conflict : conflicts) {
-            if (conflict.getStudentClass() != null) {
-                msg.append("Class: ").append(conflict.getStudentClass().getName())
-                        .append(", Time: ").append(conflict.getStartTime()).append(" - ").append(conflict.getEndTime())
-                        .append("\n");
-            }
-            if (conflict.getStudents() != null && !conflict.getStudents().isEmpty()) {
-                for (Student s : conflict.getStudents()) {
-                    msg.append("Student: ").append(s.getFirstName()).append(" ").append(s.getLastName())
-                            .append(", Time: ").append(conflict.getStartTime()).append(" - ").append(conflict.getEndTime())
-                            .append("\n");
-                }
-            }
-        }
-        return msg.toString().trim();
+        if (!removed)  throw new RuntimeException("Student with id " + studentId + " not found in this slot");
+
+
+        if (slot.getStudents().isEmpty()) scheduleSlotRepository.delete(slot);
+        else scheduleSlotRepository.save(slot);
+
     }
 
 }

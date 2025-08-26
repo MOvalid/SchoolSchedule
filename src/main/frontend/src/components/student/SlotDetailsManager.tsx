@@ -10,7 +10,7 @@ interface SlotDetailsManagerProps {
     rooms: RoomDto[];
     studentId: number;
     editSlot: (slot: Slot, formValues: SlotFormValues) => void;
-    deleteSlot: (slotId: number, onSuccess: () => void) => void;
+    deleteSlot: (slot: Slot, applyToAll: boolean) => void;
     formValues: SlotFormValues | null;
     setFormValues: Dispatch<SetStateAction<SlotFormValues>>;
 }
@@ -22,6 +22,7 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
     rooms,
     studentId,
     editSlot,
+    deleteSlot,
     formValues,
     setFormValues,
 }) => {
@@ -42,8 +43,25 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
             roomId: slot.roomId,
             studentIds: slot.studentIds ?? [studentId],
             studentClassId: slot.studentClassId,
+            applyToAll: true,
         });
         setEditOpen(true);
+    };
+
+    const handleDelete = (slot: Slot, applyToAll: boolean) => {
+        deleteSlot(slot, applyToAll);
+        setSelectedSlot(null);
+    };
+
+    const handleClose = () => {
+        setEditOpen(false);
+        setSelectedSlot(null);
+    };
+
+    const handleSave = () => {
+        if (selectedSlot && formValues) editSlot(selectedSlot, formValues);
+        setEditOpen(false);
+        setSelectedSlot(null);
     };
 
     return (
@@ -54,9 +72,9 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
                     slot={selectedSlot}
                     therapists={therapists}
                     rooms={rooms}
-                    onClose={() => setSelectedSlot(null)}
+                    onClose={handleClose}
                     onEdit={handleEdit}
-                    onDelete={() => setSelectedSlot(null)}
+                    onDelete={handleDelete}
                 />
             )}
 
@@ -66,15 +84,8 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
                     slot={selectedSlot}
                     formValues={formValues}
                     setFormValues={setFormValues}
-                    onClose={() => {
-                        setEditOpen(false);
-                        setSelectedSlot(null);
-                    }}
-                    onSave={() => {
-                        editSlot(selectedSlot, formValues);
-                        setEditOpen(false);
-                        setSelectedSlot(null);
-                    }}
+                    onClose={handleClose}
+                    onSave={handleSave}
                     therapists={therapists}
                     rooms={rooms}
                     errorMessage={null}

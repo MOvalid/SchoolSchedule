@@ -7,6 +7,8 @@ import {
     Button,
     Typography,
     Stack,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
 import { Slot, TherapistDto, RoomDto } from '../../types/types';
 
@@ -17,7 +19,7 @@ interface SlotDetailsProps {
     therapists: TherapistDto[];
     rooms: RoomDto[];
     onEdit?: (slot: Slot) => void;
-    onDelete?: (slot: Slot) => void;
+    onDelete?: (slot: Slot, applyToAll: boolean) => void;
 }
 
 const SlotDetails: React.FC<SlotDetailsProps> = ({
@@ -30,6 +32,7 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
     onDelete,
 }) => {
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [applyToAll, setApplyToAll] = useState(true);
 
     if (!slot) return null;
 
@@ -64,10 +67,22 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
                         <strong>Klasa:</strong> {slot.studentClassId || '-'}
                     </Typography>
                 </Stack>
+
                 {confirmDelete && (
-                    <Typography color="error" sx={{ mt: 2 }}>
-                        Czy na pewno chcesz usunąć ten slot?
-                    </Typography>
+                    <Stack spacing={1} sx={{ mt: 2 }}>
+                        <Typography color="error">Czy na pewno chcesz usunąć ten slot?</Typography>
+                        {slot.studentIds && slot.studentIds.length > 1 && (
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={applyToAll}
+                                        onChange={(e) => setApplyToAll(e.target.checked)}
+                                    />
+                                }
+                                label="Usuń dla wszystkich uczniów"
+                            />
+                        )}
+                    </Stack>
                 )}
             </DialogContent>
             <DialogActions>
@@ -79,7 +94,7 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
                         </Button>
                     ) : (
                         <>
-                            <Button color="error" onClick={() => onDelete(slot)}>
+                            <Button color="error" onClick={() => onDelete(slot, applyToAll)}>
                                 Potwierdź
                             </Button>
                             <Button onClick={() => setConfirmDelete(false)}>Anuluj</Button>

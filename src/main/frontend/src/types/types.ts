@@ -50,6 +50,7 @@ export interface SlotFormValues {
     roomId?: number;
     studentIds: number[];
     studentClassId?: number;
+    applyToAll: boolean;
 }
 
 export interface ScheduleSlotDto {

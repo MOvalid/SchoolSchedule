@@ -6,8 +6,10 @@ import { EntityType } from '../../types/entityTypes';
 import {
     useSchedule,
     useCreateStudentScheduleSlot,
-    useUpdateScheduleSlot,
-    useDeleteScheduleSlot,
+    useUpdateScheduleSlotForStudent,
+    useUpdateScheduleSlotForAll,
+    useDeleteScheduleSlotForStudent,
+    useDeleteScheduleSlotForAll,
 } from '../../hooks/useSchedules';
 import { getAllTherapists } from '../../services/TherapistService';
 import { getAllRooms } from '../../services/RoomService';
@@ -42,14 +44,33 @@ export const StudentScheduleCalendarPage: React.FC = () => {
         roomId: undefined,
         studentIds: [],
         studentClassId: undefined,
+        applyToAll: true,
     });
     const [therapists, setTherapists] = useState<TherapistDto[]>([]);
     const [rooms, setRooms] = useState<RoomDto[]>([]);
 
     const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, studentId);
-    const updateSchedule = useUpdateScheduleSlot(entityType, studentId);
-    const deleteSlot = useDeleteScheduleSlot(entityType, studentId);
     const createSlot = useCreateStudentScheduleSlot();
+
+    const updateSlotForAll = useUpdateScheduleSlotForAll(entityType, studentId);
+    const updateSlotForStudent = useUpdateScheduleSlotForStudent(entityType, studentId);
+
+    const deleteSlotForAll = useDeleteScheduleSlotForAll(entityType, studentId);
+    const deleteSlotForStudent = useDeleteScheduleSlotForStudent(entityType, studentId);
+
+    const editSlot = (slot: Slot, formValues: SlotFormValues) => {
+        const dto = convertFormValuesToScheduleSlotDto(formValues);
+
+        if (slot.slotId) {
+            if (formValues.applyToAll) {
+                updateSlotForAll.mutate({ id: slot.slotId, data: dto });
+            } else {
+                updateSlotForStudent.mutate({ id: slot.slotId, studentId, data: dto });
+            }
+        } else {
+            createSlot.mutate({ studentId, data: dto });
+        }
+    };
 
     useEffect(() => {
         getAllTherapists().then((res) => setTherapists(res.data));
@@ -58,7 +79,12 @@ export const StudentScheduleCalendarPage: React.FC = () => {
 
     useEffect(() => {
         if (rawSchedule.length) setEvents(rawSchedule.map(convertScheduleSlotDto));
-    }, [rawSchedule]);
+    }, [
+        rawSchedule,
+        useDeleteScheduleSlotForStudent,
+        useDeleteScheduleSlotForAll,
+        useCreateStudentScheduleSlot,
+    ]);
 
     const handleEventClick = (arg: EventClickArg) => {
         const event = events.find((e) => e.id === arg.event.id);
@@ -73,7 +99,18 @@ export const StudentScheduleCalendarPage: React.FC = () => {
             roomId: event.roomId,
             studentIds: event.studentIds ?? [studentId],
             studentClassId: event.studentClassId,
+            applyToAll: true,
         });
+    };
+
+    const deleteSlot = (slot: Slot, applyToAll: boolean) => {
+        if (!slot.slotId) return;
+        console.log('ApplyToAll: ' + applyToAll);
+        if (applyToAll) {
+            deleteSlotForAll.mutate(slot.slotId);
+        } else {
+            deleteSlotForStudent.mutate({ id: slot.slotId, studentId });
+        }
     };
 
     const handleDateClick = (arg: DateClickArg) => {
@@ -102,20 +139,12 @@ export const StudentScheduleCalendarPage: React.FC = () => {
             roomId: undefined,
             studentIds: [studentId],
             studentClassId: undefined,
+            applyToAll: true,
         });
 
         setTimeout(() => {
             document.dispatchEvent(new CustomEvent('openSlotDialog'));
         }, 0);
-    };
-
-    const editSlot = (slot: Slot, formValues: SlotFormValues) => {
-        const dto = convertFormValuesToScheduleSlotDto(formValues);
-        if (slot.slotId) {
-            updateSchedule.mutate({ id: slot.slotId, data: dto });
-        } else {
-            createSlot.mutate({ studentId, data: dto });
-        }
     };
 
     if (isLoading) return <Typography>Ładowanie grafiku...</Typography>;
@@ -146,9 +175,7 @@ export const StudentScheduleCalendarPage: React.FC = () => {
                 rooms={rooms}
                 studentId={studentId}
                 editSlot={editSlot}
-                deleteSlot={(slotId, onSuccess) => {
-                    deleteSlot.mutate(slotId, { onSuccess });
-                }}
+                deleteSlot={deleteSlot}
                 formValues={formValues}
                 setFormValues={setFormValues}
             />

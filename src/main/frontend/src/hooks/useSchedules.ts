@@ -7,124 +7,137 @@ import {
     getScheduleForStudent,
     getScheduleForTherapist,
     getScheduleForClass,
+    updateStudentScheduleSlot,
+    deleteStudentScheduleSlot,
 } from '../services/ScheduleService';
 import { ScheduleSlotDto } from '../types/types';
-import { EntityType } from '../types/entityTypes';
+import { EntityType, EntityTypesEnum } from '../types/entityTypes';
 import { AxiosError } from 'axios';
 
+type OnErrorFn = (message: string) => void;
+
 export const useSchedules = () =>
-    useQuery({
-        queryKey: ['schedules'],
-        queryFn: async () => (await getAllScheduleSlots()).data,
-    });
+    useQuery({ queryKey: ['schedules'], queryFn: async () => (await getAllScheduleSlots()).data });
 
-// export const useCreateSchedule = (onError?: (message: string) => void) => {
-//     const queryClient = useQueryClient();
-//     return useMutation({
-//         mutationFn: (data: ScheduleSlotDto) => createScheduleSlot(data),
-//         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
-//         onError: (error: any) => {
-//             const message = error?.response?.data?.message || 'Unexpected error occurred';
-//             if (onError) onError(message);
-//         },
-//     });
-// };
-
-export const useUpdateScheduleSlot = (
-    entityType: EntityType,
-    entityId: number,
-    onError?: (_message: string) => void
-) => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: ScheduleSlotDto }) =>
-            updateScheduleSlot(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['schedule', entityType, entityId] });
-        },
-        onError: (error: unknown) => {
-            let message = 'Unexpected error occurred';
-            if (error instanceof AxiosError) {
-                message = error.response?.data?.message || message;
-            }
-            if (onError) onError(message);
-        },
-    });
-};
-
-interface CreateStudentSlotProps {
-    studentId: number;
-    data: ScheduleSlotDto;
-}
-
-export const useCreateStudentScheduleSlot = (onError?: (_message: string) => void) => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ studentId, data }: CreateStudentSlotProps) =>
-            createScheduleSlot(studentId, data),
-        onSuccess: (_, { studentId }) => {
-            queryClient.invalidateQueries({ queryKey: ['schedule', 'student', studentId] });
-        },
-        onError: (error: unknown) => {
-            let message = 'Unexpected error occurred';
-            if (error instanceof AxiosError) {
-                message = error.response?.data?.message || message;
-            }
-            if (onError) onError(message);
-        },
-    });
-};
-
-export const useDeleteScheduleSlot = (
-    entityType: EntityType,
-    entityId: number,
-    onError?: (_message: string) => void
-) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (id: number) => deleteScheduleSlot(id),
-        onSuccess: () => {
-            if (entityType && entityId !== undefined) {
-                queryClient.invalidateQueries({ queryKey: ['schedule', entityType, entityId] });
-            } else {
-                console.error('Invalid entityType or entityId for deleteScheduleSlot');
-                queryClient.invalidateQueries({ queryKey: ['schedules'] });
-            }
-        },
-        onError: (error: unknown) => {
-            let message = 'Unexpected error occurred';
-            if (error instanceof AxiosError) {
-                message = error.response?.data?.message || message;
-            } else if (error instanceof Error) {
-                message = error.message;
-            }
-            if (onError) onError(message);
-        },
-    });
-};
-
-/**
- * Hook do pobierania grafiku dla podanego typu bytu i jego ID.
- * @param entityType Typ bytu ('student', 'therapist', 'class')
- * @param entityId ID bytu
- * @returns obiekt react-query z danymi i statusami
- */
-export const useSchedule = (entityType: EntityType, entityId: number) => {
-    return useQuery<ScheduleSlotDto[], Error>({
+export const useSchedule = (entityType: EntityType, entityId: number) =>
+    useQuery<ScheduleSlotDto[], Error>({
         queryKey: ['schedule', entityType, entityId],
-        queryFn: () => {
+        queryFn: async () => {
             switch (entityType) {
-                case 'student':
-                    return getScheduleForStudent(entityId).then((res) => res.data);
-                case 'therapist':
-                    return getScheduleForTherapist(entityId).then((res) => res.data);
-                case 'class':
-                    return getScheduleForClass(entityId).then((res) => res.data);
-                default:
+                case 'student': {
+                    const res = await getScheduleForStudent(entityId);
+                    return res.data;
+                }
+                case 'therapist': {
+                    const res = await getScheduleForTherapist(entityId);
+                    return res.data;
+                }
+                case 'class': {
+                    const res = await getScheduleForClass(entityId);
+                    return res.data;
+                }
+                default: {
                     return Promise.resolve([]);
+                }
             }
         },
         enabled: !!entityId && !!entityType,
     });
-};
+
+function useScheduleSlotMutation<TVariables, TResult = unknown>(
+    mutationFn: (variables: TVariables) => Promise<TResult>,
+    entityType: EntityType,
+    entityId: number,
+    onError?: OnErrorFn,
+    invalidateQueries: string[] = ['schedule']
+) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn,
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [...invalidateQueries, entityType, entityId],
+            });
+        },
+        onError: (error: unknown) => {
+            let msg = 'Unexpected error occurred';
+            if (error instanceof AxiosError) msg = error.response?.data?.message || msg;
+            else if (error instanceof Error) msg = error.message;
+            if (onError) onError(msg);
+        },
+    });
+}
+
+// CREATE
+interface CreateStudentSlotProps {
+    studentId: number;
+    data: ScheduleSlotDto;
+}
+export const useCreateStudentScheduleSlot = (onError?: OnErrorFn) =>
+    useScheduleSlotMutation<CreateStudentSlotProps>(
+        ({ studentId, data }) => createScheduleSlot(studentId, data),
+        EntityTypesEnum.Student,
+        0,
+        onError
+    );
+
+// UPDATE
+interface UpdateStudentSlotProps {
+    id: number;
+    studentId: number;
+    data: ScheduleSlotDto;
+}
+
+export const useUpdateScheduleSlotForAll = (
+    entityType: EntityType,
+    entityId: number,
+    onError?: OnErrorFn
+) =>
+    useScheduleSlotMutation<{ id: number; data: ScheduleSlotDto }>(
+        ({ id, data }) => updateScheduleSlot(id, data),
+        entityType,
+        entityId,
+        onError
+    );
+
+export const useUpdateScheduleSlotForStudent = (
+    entityType: EntityType,
+    entityId: number,
+    onError?: OnErrorFn
+) =>
+    useScheduleSlotMutation<UpdateStudentSlotProps>(
+        ({ id, studentId, data }) => updateStudentScheduleSlot(studentId, id, data),
+        entityType,
+        entityId,
+        onError
+    );
+
+// DELETE
+interface DeleteStudentSlotProps {
+    id: number;
+    studentId: number;
+}
+export const useDeleteScheduleSlotForAll = (
+    entityType: EntityType,
+    entityId: number,
+    onError?: OnErrorFn
+) =>
+    useScheduleSlotMutation<{ id: number }>(
+        ({ id }) => deleteScheduleSlot(id),
+        entityType,
+        entityId,
+        onError
+    );
+
+export const useDeleteScheduleSlotForStudent = (
+    entityType: EntityType,
+    entityId: number,
+    onError?: OnErrorFn
+) =>
+    useScheduleSlotMutation<DeleteStudentSlotProps>(
+        ({ id, studentId }) => deleteStudentScheduleSlot(studentId, id),
+        entityType,
+        entityId,
+        onError
+    );

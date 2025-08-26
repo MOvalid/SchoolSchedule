@@ -8,6 +8,8 @@ import {
     MenuItem,
     Button,
     Typography,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
 import { Slot, SlotFormValues, TherapistDto, RoomDto } from '../../types/types';
 import { toISOTime } from '../../utils/DateUtils';
@@ -105,6 +107,18 @@ const SlotDialog: React.FC<Props> = ({
                     margin="dense"
                     value={formValues.end.slice(11, 16)}
                     onChange={(e) => handleTimeChange('end', e.target.value)}
+                />
+
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={formValues.applyToAll}
+                            onChange={(e) =>
+                                setFormValues({ ...formValues, applyToAll: e.target.checked })
+                            }
+                        />
+                    }
+                    label="Zastosuj zmiany dla wszystkich uczniów"
                 />
 
                 {errorMessage && (

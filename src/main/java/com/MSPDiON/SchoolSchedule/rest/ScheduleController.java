@@ -48,7 +48,24 @@ public class ScheduleController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ScheduleSlotDto> update(@PathVariable Long id, @RequestBody ScheduleSlotDto dto) {
-        return ResponseEntity.ok(scheduleService.updateScheduleSlot(id, dto));
+        return ResponseEntity.ok(scheduleService.updateScheduleSlotForAllStudents(id, dto));
+    }
+
+    @PutMapping("/{id}/all")
+    public ScheduleSlotDto updateForAll(
+            @PathVariable Long id,
+            @RequestBody ScheduleSlotDto dto
+    ) {
+        return scheduleService.updateScheduleSlotForAllStudents(id, dto);
+    }
+
+    @PutMapping("/{id}/student/{studentId}")
+    public ScheduleSlotDto updateForSingleStudent(
+            @PathVariable Long id,
+            @PathVariable Long studentId,
+            @RequestBody ScheduleSlotDto dto
+    ) {
+        return scheduleService.updateScheduleSlotForSingleStudent(id, studentId, dto);
     }
 
     @DeleteMapping("/{id}")
@@ -57,18 +74,18 @@ public class ScheduleController {
         return ResponseEntity.noContent().build();
     }
 
-//    @PostMapping("/student/{id}")
-//    public ResponseEntity<String> checkStudentScheduleUpdate(@RequestBody StudentScheduleCheckDto dto) {
-//        LocalTime start = LocalTime.parse(dto.getStartTime());
-//        LocalTime end = LocalTime.parse(dto.getEndTime());
-//
-//        try {
-//            scheduleService.checkStudentUpdateConflicts(dto.getScheduleSlotId(), dto.getTherapistId(), dto.getStudentId(), dto.getStudentClassId(), dto.getDayOfWeek(), start, end);
-//            return ResponseEntity.ok("No conflicts");
-//        } catch (IllegalArgumentException ex) {
-//            return ResponseEntity.badRequest().body(ex.getMessage());
-//        }
-//    }
+    @DeleteMapping("/{id}/all")
+    public void deleteForAll(@PathVariable Long id) {
+        scheduleService.deleteScheduleSlotForAllStudents(id);
+    }
+
+    @DeleteMapping("/{id}/student/{studentId}")
+    public void deleteForSingleStudent(
+            @PathVariable Long id,
+            @PathVariable Long studentId
+    ) {
+        scheduleService.deleteScheduleSlotForSingleStudent(id, studentId);
+    }
 
     @PostMapping("/student/{id}")
     public ResponseEntity<ScheduleSlotDto> createSlotForStudent(@PathVariable Long id, @RequestBody CreateScheduleSlotDto dto) {
