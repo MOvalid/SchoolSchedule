@@ -1,13 +1,16 @@
 import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
 import SlotDetails from './SlotDetails';
 import SlotDialog from './SlotDialog';
-import { Slot, SlotFormValues, TherapistDto, RoomDto } from '../../types/types';
+import { Slot, SlotFormValues, TherapistDto, RoomDto, StudentDto } from '../../types/types';
+import { EntityTypes } from '../../types/entityTypes';
 
 interface SlotDetailsManagerProps {
     selectedSlot: Slot | null;
     setSelectedSlot: (slot: Slot | null) => void;
     therapists: TherapistDto[];
     rooms: RoomDto[];
+    students: StudentDto[];
+    entityType: EntityTypes;
     studentId: number;
     editSlot: (slot: Slot, formValues: SlotFormValues) => void;
     deleteSlot: (slot: Slot, applyToAll: boolean) => void;
@@ -20,6 +23,8 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
     setSelectedSlot,
     therapists,
     rooms,
+    students,
+    entityType,
     studentId,
     editSlot,
     deleteSlot,
@@ -88,6 +93,8 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
                     onSave={handleSave}
                     therapists={therapists}
                     rooms={rooms}
+                    students={students}
+                    entityType={entityType}
                     errorMessage={null}
                     saving={false}
                 />

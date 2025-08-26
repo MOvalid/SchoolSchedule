@@ -10,9 +10,14 @@ import {
     Typography,
     FormControlLabel,
     Checkbox,
+    FormControl,
+    InputLabel,
+    Select,
+    ListItemText,
 } from '@mui/material';
-import { Slot, SlotFormValues, TherapistDto, RoomDto } from '../../types/types';
+import { Slot, SlotFormValues, TherapistDto, RoomDto, StudentDto } from '../../types/types';
 import { toISOTime } from '../../utils/DateUtils';
+import { EntityTypes } from '../../types/entityTypes';
 
 interface Props {
     open: boolean;
@@ -23,6 +28,8 @@ interface Props {
     onSave: () => void;
     therapists: TherapistDto[];
     rooms: RoomDto[];
+    students: StudentDto[];
+    entityType: EntityTypes;
     errorMessage?: string | null;
     saving?: boolean;
 }
@@ -36,6 +43,8 @@ const SlotDialog: React.FC<Props> = ({
     onSave,
     therapists,
     rooms,
+    students,
+    entityType,
     errorMessage,
     saving,
 }) => {
@@ -46,6 +55,7 @@ const SlotDialog: React.FC<Props> = ({
             [field]: toISOTime(datePart, value),
         });
     };
+    console.log(entityType);
 
     if (!slot) return null;
 
@@ -108,6 +118,40 @@ const SlotDialog: React.FC<Props> = ({
                     value={formValues.end.slice(11, 16)}
                     onChange={(e) => handleTimeChange('end', e.target.value)}
                 />
+
+                {entityType === EntityTypes.Therapist && (
+                    <FormControl fullWidth margin="dense" sx={{ mt: 2 }}>
+                        <InputLabel id="students-label">Uczniowie</InputLabel>
+                        <Select
+                            labelId="students-label"
+                            multiple
+                            value={formValues.studentIds}
+                            onChange={(e) =>
+                                setFormValues({
+                                    ...formValues,
+                                    studentIds: e.target.value as number[],
+                                })
+                            }
+                            renderValue={(selected) =>
+                                students
+                                    .filter((s) => selected.includes(s.id))
+                                    .map((s) => `${s.firstName} ${s.lastName}`)
+                                    .join(', ')
+                            }
+                        >
+                            {students.map((student) => (
+                                <MenuItem key={student.id} value={student.id}>
+                                    <Checkbox
+                                        checked={formValues.studentIds.includes(student.id)}
+                                    />
+                                    <ListItemText
+                                        primary={`${student.firstName} ${student.lastName}`}
+                                    />
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                )}
 
                 <FormControlLabel
                     control={

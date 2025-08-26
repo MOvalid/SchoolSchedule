@@ -1,7 +1,7 @@
 export type Department = 'SCHOOL' | 'REHABILITATION';
 
 export interface StudentDto {
-    id?: number;
+    id: number;
     firstName: string;
     lastName: string;
     arrivalTime?: string;
@@ -11,19 +11,19 @@ export interface StudentDto {
 }
 
 export interface TherapistDto {
-    id?: number;
+    id: number;
     firstName: string;
     lastName: string;
     department?: Department;
 }
 
 export interface RoomDto {
-    id?: number;
+    id: number;
     name: string;
 }
 
 export interface StudentClassDto {
-    id?: number;
+    id: number;
     name: string;
     department?: Department;
 }
@@ -85,8 +85,6 @@ export interface ErrorResponse {
     message?: string;
     status?: number;
 }
-
-export type EntityType = 'STUDENT' | 'CLASS' | 'THERAPIST';
 
 export interface ScheduleSlotMutationParams {
     id?: number;

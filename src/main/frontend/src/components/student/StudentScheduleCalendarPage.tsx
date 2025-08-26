@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
-import { Slot, SlotFormValues, TherapistDto, RoomDto } from '../../types/types';
-import { EntityType } from '../../types/entityTypes';
+import { RoomDto, Slot, SlotFormValues, StudentDto, TherapistDto } from '../../types/types';
+import { EntityTypes } from '../../types/entityTypes';
 import {
-    useSchedule,
     useCreateStudentScheduleSlot,
-    useUpdateScheduleSlotForStudent,
-    useUpdateScheduleSlotForAll,
-    useDeleteScheduleSlotForStudent,
     useDeleteScheduleSlotForAll,
+    useDeleteScheduleSlotForStudent,
+    useSchedule,
+    useUpdateScheduleSlotForAll,
+    useUpdateScheduleSlotForStudent,
 } from '../../hooks/useSchedules';
 import { getAllTherapists } from '../../services/TherapistService';
 import { getAllRooms } from '../../services/RoomService';
@@ -22,9 +22,10 @@ import ScheduleCalendar from './ScheduleCalendar';
 import { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
 import SlotDetailsManager from './SlotDetailsManager';
+import { getAllStudents } from '../../services/StudentService';
 
 interface LocationState {
-    entityType: EntityType;
+    entityType: EntityTypes;
     entityId: number;
     name: string;
 }
@@ -48,6 +49,7 @@ export const StudentScheduleCalendarPage: React.FC = () => {
     });
     const [therapists, setTherapists] = useState<TherapistDto[]>([]);
     const [rooms, setRooms] = useState<RoomDto[]>([]);
+    const [students, setStudents] = useState<StudentDto[]>([]);
 
     const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, studentId);
     const createSlot = useCreateStudentScheduleSlot();
@@ -75,7 +77,10 @@ export const StudentScheduleCalendarPage: React.FC = () => {
     useEffect(() => {
         getAllTherapists().then((res) => setTherapists(res.data));
         getAllRooms().then((res) => setRooms(res.data));
-    }, []);
+        if (entityType === EntityTypes.Therapist) {
+            getAllStudents().then((res) => setStudents(res.data));
+        }
+    }, [entityType]);
 
     useEffect(() => {
         if (rawSchedule.length) setEvents(rawSchedule.map(convertScheduleSlotDto));
@@ -105,7 +110,7 @@ export const StudentScheduleCalendarPage: React.FC = () => {
 
     const deleteSlot = (slot: Slot, applyToAll: boolean) => {
         if (!slot.slotId) return;
-        console.log('ApplyToAll: ' + applyToAll);
+
         if (applyToAll) {
             deleteSlotForAll.mutate({ id: slot.slotId });
         } else {
@@ -173,6 +178,8 @@ export const StudentScheduleCalendarPage: React.FC = () => {
                 setSelectedSlot={setSelectedSlot}
                 therapists={therapists}
                 rooms={rooms}
+                students={students}
+                entityType={entityType}
                 studentId={studentId}
                 editSlot={editSlot}
                 deleteSlot={deleteSlot}

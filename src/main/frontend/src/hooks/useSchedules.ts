@@ -11,7 +11,7 @@ import {
     deleteStudentScheduleSlot,
 } from '../services/ScheduleService';
 import { ScheduleSlotDto } from '../types/types';
-import { EntityType, EntityTypesEnum } from '../types/entityTypes';
+import { EntityType, EntityTypes } from '../types/entityTypes';
 import { AxiosError } from 'axios';
 
 type OnErrorFn = (message: string) => void;
@@ -77,7 +77,7 @@ interface CreateStudentSlotProps {
 export const useCreateStudentScheduleSlot = (onError?: OnErrorFn) =>
     useScheduleSlotMutation<CreateStudentSlotProps>(
         ({ studentId, data }) => createScheduleSlot(studentId, data),
-        EntityTypesEnum.Student,
+        EntityTypes.Student,
         0,
         onError
     );

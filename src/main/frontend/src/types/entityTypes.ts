@@ -1,6 +1,6 @@
 export type EntityType = 'student' | 'therapist' | 'class';
 
-export enum EntityTypesEnum {
+export enum EntityTypes {
     Student = 'student',
     Therapist = 'therapist',
     Class = 'class',
