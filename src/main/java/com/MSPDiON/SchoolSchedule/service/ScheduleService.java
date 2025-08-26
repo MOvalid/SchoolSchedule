@@ -83,6 +83,8 @@ public class ScheduleService {
                 slot.getEndTime()
         );
 
+        conflicts.removeIf(c -> c.getId().equals(slot.getId()));
+
         if (conflicts.isEmpty()) return List.of();
         return List.of(ConflictMessageBuilder.buildTherapistConflictMessage(slot, conflicts));
     }
@@ -93,6 +95,8 @@ public class ScheduleService {
                 slot.getStartTime(),
                 slot.getEndTime()
         );
+
+        conflicts.removeIf(c -> c.getId().equals(slot.getId()));
 
         if (conflicts.isEmpty()) return List.of();
         return List.of(ConflictMessageBuilder.buildRoomConflictMessage(slot, conflicts));
@@ -108,6 +112,9 @@ public class ScheduleService {
                     slot.getStartTime(),
                     slot.getEndTime()
             );
+
+            conflicts.removeIf(c -> c.getId().equals(slot.getId()));
+
             if (!conflicts.isEmpty()) {
                 messages.add(ConflictMessageBuilder.buildStudentConflictMessage(student, conflicts));
             }
@@ -128,6 +135,9 @@ public class ScheduleService {
                     slot.getStartTime(),
                     slot.getEndTime()
             );
+
+            conflicts.removeIf(c -> c.getId().equals(slot.getId()));
+
             if (!conflicts.isEmpty()) {
                 messages.add("Uczeń " + student.getFirstName() + " " + student.getLastName()
                         + " z klasy " + studentClass.getName() + " ma konflikt w grafiku.");
@@ -135,6 +145,7 @@ public class ScheduleService {
         }
         return messages;
     }
+
 
     public List<ScheduleSlotDto> getAllScheduleSlots() {
         return scheduleSlotRepository.findAll()

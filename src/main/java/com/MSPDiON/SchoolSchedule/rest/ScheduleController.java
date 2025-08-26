@@ -72,6 +72,7 @@ public class ScheduleController {
 
     @PostMapping("/student/{id}")
     public ResponseEntity<ScheduleSlotDto> createSlotForStudent(@PathVariable Long id, @RequestBody CreateScheduleSlotDto dto) {
+        dto.setStudentId(id);
         System.out.println(dto);
         ScheduleSlotDto created = scheduleService.createScheduleSlot(dto);
         return ResponseEntity.ok(created);

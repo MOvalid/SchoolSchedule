@@ -68,7 +68,12 @@ public class ScheduleMapper {
 
     public ScheduleSlot toEntity(CreateScheduleSlotDto dto) {
         if (dto.getTherapistId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Therapist ID is required");
-        if (dto.getStudentId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student ID is required");
+        if (dto.getStudentId() == null){
+            if (dto.getStudentIds() != null && !dto.getStudentIds().isEmpty()){
+                dto.setStudentId(dto.getStudentIds().getFirst());
+            }
+            else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student ID is required");
+        }
         if (dto.getRoomId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room ID is required");
 
         Therapist therapist = therapistRepository.findById(dto.getTherapistId())

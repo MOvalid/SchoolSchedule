@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
-import { AxiosError } from 'axios';
-import { Slot, SlotFormValues, ScheduleSlotDto, TherapistDto, RoomDto } from '../../types/types';
+import { Slot, SlotFormValues, TherapistDto, RoomDto } from '../../types/types';
 import { EntityType } from '../../types/entityTypes';
 import {
     useSchedule,
     useCreateStudentScheduleSlot,
     useUpdateScheduleSlot,
+    useDeleteScheduleSlot,
 } from '../../hooks/useSchedules';
 import { getAllTherapists } from '../../services/TherapistService';
 import { getAllRooms } from '../../services/RoomService';
 import {
     convertFormValuesToScheduleSlotDto,
-    convertScheduleSlotDto2,
+    convertScheduleSlotDto,
 } from '../../utils/ScheduleSlotConverter';
 import ActionButtons from './ActionButtons';
 import ScheduleCalendar from './ScheduleCalendar';
-import SlotDialog from './SlotDialog';
 import { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
+import SlotDetailsManager from './SlotDetailsManager';
 
 interface LocationState {
     entityType: EntityType;
@@ -27,7 +27,7 @@ interface LocationState {
     name: string;
 }
 
-const StudentScheduleCalendarPage: React.FC = () => {
+export const StudentScheduleCalendarPage: React.FC = () => {
     const location = useLocation();
     const { entityType, entityId: studentId, name } = location.state as LocationState;
 
@@ -45,10 +45,10 @@ const StudentScheduleCalendarPage: React.FC = () => {
     });
     const [therapists, setTherapists] = useState<TherapistDto[]>([]);
     const [rooms, setRooms] = useState<RoomDto[]>([]);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, studentId);
     const updateSchedule = useUpdateScheduleSlot(entityType, studentId);
+    const deleteSlot = useDeleteScheduleSlot(entityType, studentId);
     const createSlot = useCreateStudentScheduleSlot();
 
     useEffect(() => {
@@ -57,41 +57,23 @@ const StudentScheduleCalendarPage: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (rawSchedule.length) setEvents(rawSchedule.map(convertScheduleSlotDto2));
+        if (rawSchedule.length) setEvents(rawSchedule.map(convertScheduleSlotDto));
     }, [rawSchedule]);
 
-    const handleMutationError = (error: unknown) => {
-        if (error instanceof AxiosError) {
-            if (error.response?.status === 409) {
-                alert(error.response.data?.message || 'Conflict occurred while saving slot.');
-            } else {
-                setErrorMessage(
-                    error.response?.data?.message || 'Nieoczekiwany błąd podczas zapisu.'
-                );
-            }
-        } else if (error instanceof Error) {
-            setErrorMessage(error.message);
-        } else {
-            setErrorMessage('Nieoczekiwany błąd podczas zapisu.');
-        }
-    };
-
     const handleEventClick = (arg: EventClickArg) => {
-        if (!editMode) return;
-
         const event = events.find((e) => e.id === arg.event.id);
-        if (event) {
-            setSelectedSlot(event);
-            setFormValues({
-                title: event.title || '',
-                start: event.start,
-                end: event.end,
-                therapistId: event.therapistId,
-                roomId: event.roomId,
-                studentIds: selectedSlot?.studentIds ?? [studentId],
-                studentClassId: event.studentClassId,
-            });
-        }
+        if (!event) return;
+
+        setSelectedSlot(event);
+        setFormValues({
+            title: event.title || '',
+            start: event.start,
+            end: event.end,
+            therapistId: event.therapistId,
+            roomId: event.roomId,
+            studentIds: event.studentIds ?? [studentId],
+            studentClassId: event.studentClassId,
+        });
     };
 
     const handleDateClick = (arg: DateClickArg) => {
@@ -101,7 +83,7 @@ const StudentScheduleCalendarPage: React.FC = () => {
         const endDateTime = new Date(arg.date);
         endDateTime.setHours(endDateTime.getHours() + 1);
 
-        setSelectedSlot({
+        const newSlot: Slot = {
             id: `new-${Date.now()}`,
             title: '',
             start: startDateTime,
@@ -109,36 +91,35 @@ const StudentScheduleCalendarPage: React.FC = () => {
             therapistId: undefined,
             studentIds: [],
             studentClassId: undefined,
-        });
+        };
 
+        setSelectedSlot(newSlot);
         setFormValues({
             title: '',
             start: startDateTime,
             end: endDateTime.toISOString(),
             therapistId: undefined,
-            studentIds: [],
+            roomId: undefined,
+            studentIds: [studentId],
             studentClassId: undefined,
         });
-        setErrorMessage(null);
+
+        setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('openSlotDialog'));
+        }, 0);
     };
 
-    const handleSaveEdit = () => {
-        if (!formValues) return;
-        const dto: ScheduleSlotDto = convertFormValuesToScheduleSlotDto(formValues);
-        dto.studentIds = [Number(studentId)];
-        const slotId = selectedSlot?.slotId;
-
-        if (slotId) {
-            dto.studentIds = selectedSlot.studentIds ?? [];
-            updateSchedule.mutate({ id: slotId, data: dto }, { onError: handleMutationError });
+    const editSlot = (slot: Slot, formValues: SlotFormValues) => {
+        const dto = convertFormValuesToScheduleSlotDto(formValues);
+        if (slot.slotId) {
+            updateSchedule.mutate({ id: slot.slotId, data: dto });
         } else {
-            dto.studentIds = [studentId];
-            createSlot.mutate({ studentId, data: dto }, { onError: handleMutationError });
+            createSlot.mutate({ studentId, data: dto });
         }
-        setSelectedSlot(null);
     };
 
     if (isLoading) return <Typography>Ładowanie grafiku...</Typography>;
+
     if (error)
         return <Typography color="error">Błąd ładowania grafiku: {error.message}</Typography>;
 
@@ -158,20 +139,19 @@ const StudentScheduleCalendarPage: React.FC = () => {
                 onDateClick={handleDateClick}
             />
 
-            <SlotDialog
-                open={!!selectedSlot}
-                slot={selectedSlot}
-                formValues={formValues}
-                setFormValues={setFormValues}
-                onClose={() => setSelectedSlot(null)}
-                onSave={handleSaveEdit}
+            <SlotDetailsManager
+                selectedSlot={selectedSlot}
+                setSelectedSlot={setSelectedSlot}
                 therapists={therapists}
                 rooms={rooms}
-                errorMessage={errorMessage}
-                saving={updateSchedule.isPending || createSlot.isPending}
+                studentId={studentId}
+                editSlot={editSlot}
+                deleteSlot={(slotId, onSuccess) => {
+                    deleteSlot.mutate(slotId, { onSuccess });
+                }}
+                formValues={formValues}
+                setFormValues={setFormValues}
             />
         </Box>
     );
 };
-
-export default StudentScheduleCalendarPage;

@@ -26,17 +26,6 @@ const createUTCDateTime = (mondayUTC: Date, dayOfWeek: number, timeStr: string):
 
 export const convertScheduleSlotDto = (slot: ScheduleSlotDto): Slot => {
     const mondayUTC = getMondayOfCurrentWeekUTC();
-
-    return {
-        id: slot.id?.toString() ?? crypto.randomUUID(),
-        title: slot.title ?? 'Zajęcia',
-        start: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.startTime),
-        end: createUTCDateTime(mondayUTC, slot.dayOfWeek, slot.endTime),
-    };
-};
-
-export const convertScheduleSlotDto2 = (slot: ScheduleSlotDto): Slot => {
-    const mondayUTC = getMondayOfCurrentWeekUTC();
     return {
         id: crypto.randomUUID(), // FullCalendar ID
         slotId: slot.id, // backend ID

@@ -23,7 +23,7 @@ import { EntityType } from '../../../types/entityTypes';
 import plLocale from '@fullcalendar/core/locales/pl';
 import {
     convertFormValuesToScheduleSlotDto,
-    convertScheduleSlotDto2,
+    convertScheduleSlotDto,
 } from '../../../utils/ScheduleSlotConverter';
 import {
     useCreateStudentScheduleSlot,
@@ -75,7 +75,7 @@ const StudentScheduleCalendarPage = () => {
 
     useEffect(() => {
         if (rawSchedule.length) {
-            setEvents(rawSchedule.map(convertScheduleSlotDto2));
+            setEvents(rawSchedule.map(convertScheduleSlotDto));
         }
     }, [rawSchedule]);
 

@@ -75,11 +75,32 @@ export const useCreateStudentScheduleSlot = (onError?: (_message: string) => voi
     });
 };
 
-export const useDeleteSchedule = () => {
+export const useDeleteScheduleSlot = (
+    entityType: EntityType,
+    entityId: number,
+    onError?: (_message: string) => void
+) => {
     const queryClient = useQueryClient();
+
     return useMutation({
         mutationFn: (id: number) => deleteScheduleSlot(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
+        onSuccess: () => {
+            if (entityType && entityId !== undefined) {
+                queryClient.invalidateQueries({ queryKey: ['schedule', entityType, entityId] });
+            } else {
+                console.error('Invalid entityType or entityId for deleteScheduleSlot');
+                queryClient.invalidateQueries({ queryKey: ['schedules'] });
+            }
+        },
+        onError: (error: unknown) => {
+            let message = 'Unexpected error occurred';
+            if (error instanceof AxiosError) {
+                message = error.response?.data?.message || message;
+            } else if (error instanceof Error) {
+                message = error.message;
+            }
+            if (onError) onError(message);
+        },
     });
 };
 
