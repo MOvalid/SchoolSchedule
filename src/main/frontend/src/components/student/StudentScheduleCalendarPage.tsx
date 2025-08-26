@@ -107,7 +107,7 @@ export const StudentScheduleCalendarPage: React.FC = () => {
         if (!slot.slotId) return;
         console.log('ApplyToAll: ' + applyToAll);
         if (applyToAll) {
-            deleteSlotForAll.mutate(slot.slotId);
+            deleteSlotForAll.mutate({ id: slot.slotId });
         } else {
             deleteSlotForStudent.mutate({ id: slot.slotId, studentId });
         }
