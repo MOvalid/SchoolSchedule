@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.dto.mapper;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateStudentDto;
 import com.MSPDiON.SchoolSchedule.dto.StudentDto;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
@@ -43,6 +44,17 @@ public class StudentMapper {
                 .arrivalTime(dto.getArrivalTime())
                 .departureTime(dto.getDepartureTime())
                 .studentClass(studentClass)
+                .build();
+    }
+
+    public Student toEntity(CreateStudentDto dto) {
+        if (dto == null) return null;
+
+        return Student.builder()
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .arrivalTime(dto.getArrivalTime())
+                .departureTime(dto.getDepartureTime())
                 .build();
     }
 }

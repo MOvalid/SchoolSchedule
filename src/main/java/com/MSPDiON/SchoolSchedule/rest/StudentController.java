@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.rest;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateStudentDto;
 import com.MSPDiON.SchoolSchedule.dto.StudentDto;
 import com.MSPDiON.SchoolSchedule.service.StudentService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ public class StudentController {
     private final StudentService studentService;
 
     @PostMapping
-    public StudentDto create(@RequestBody StudentDto dto) {
+    public StudentDto create(@RequestBody CreateStudentDto dto) {
         return studentService.create(dto);
     }
 

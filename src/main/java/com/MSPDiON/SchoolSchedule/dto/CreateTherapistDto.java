@@ -13,8 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TherapistDto {
-    private Long id;
+public class CreateTherapistDto {
     private String firstName;
     private String lastName;
     private TherapistRole role;

@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.dto.mapper;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateTherapistDto;
 import com.MSPDiON.SchoolSchedule.dto.TherapistDto;
 import com.MSPDiON.SchoolSchedule.model.Therapist;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ public class TherapistMapper {
                 .firstName(entity.getFirstName())
                 .lastName(entity.getLastName())
                 .role(entity.getRole())
+                .departments(entity.getDepartments())
                 .build();
     }
 
@@ -24,6 +26,17 @@ public class TherapistMapper {
                 .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
                 .role(dto.getRole())
+                .departments(dto.getDepartments())
+                .build();
+    }
+
+    public Therapist toEntity(CreateTherapistDto dto) {
+        if (dto == null) return null;
+        return Therapist.builder()
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .role(dto.getRole())
+                .departments(dto.getDepartments())
                 .build();
     }
 }

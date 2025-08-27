@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.service;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateTherapistDto;
 import com.MSPDiON.SchoolSchedule.dto.TherapistDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.TherapistMapper;
 import com.MSPDiON.SchoolSchedule.model.Therapist;
@@ -29,7 +30,7 @@ public class TherapistService {
                 .orElseThrow(() -> new RuntimeException("Therapist not found"));
     }
 
-    public TherapistDto create(TherapistDto dto) {
+    public TherapistDto create(CreateTherapistDto dto) {
         Therapist saved = therapistRepository.save(therapistMapper.toEntity(dto));
         return therapistMapper.toDto(saved);
     }

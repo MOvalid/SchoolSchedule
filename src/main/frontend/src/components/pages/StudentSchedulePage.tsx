@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchSelect from '../common/SearchSelect';
 import { StudentDto } from '../../types/types';
 import { getAllStudents } from '../../services/StudentService';
-import { EntityTypes } from '../../types/entityTypes';
+import { EntityTypes } from '../../types/enums/entityTypes';
 
 const StudentSchedulePage: React.FC = () => {
     const [students, setStudents] = useState<StudentDto[]>([]);

@@ -1,38 +1,36 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
 import {
     getAllClasses,
     createClass,
     updateClass,
     deleteClass,
 } from '../services/StudentClassService';
-import { StudentClassDto } from '../types/types';
+import { CreateStudentClassDto, StudentClassDto } from '../types/types';
+
+const STUDENT_CLASSES_QUERY_KEY = ['studentClasses'];
 
 export const useStudentClasses = () =>
     useQuery({
-        queryKey: ['studentClasses'],
+        queryKey: STUDENT_CLASSES_QUERY_KEY,
         queryFn: async () => (await getAllClasses()).data,
     });
 
-export const useCreateClass = () => {
+const useStudentClassMutation = <TArgs, TResult = void>(
+    mutationFn: (args: TArgs) => Promise<TResult>
+): UseMutationResult<TResult, unknown, TArgs> => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: StudentClassDto) => createClass(data),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['studentClasses'] }),
+        mutationFn,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: STUDENT_CLASSES_QUERY_KEY }),
     });
 };
 
-export const useUpdateClass = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: StudentClassDto }) => updateClass(id, data),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['studentClasses'] }),
-    });
-};
+export const useCreateClass = () =>
+    useStudentClassMutation((data: CreateStudentClassDto) => createClass(data));
 
-export const useDeleteClass = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => deleteClass(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['studentClasses'] }),
-    });
-};
+export const useUpdateClass = () =>
+    useStudentClassMutation(({ id, data }: { id: number; data: StudentClassDto }) =>
+        updateClass(id, data)
+    );
+
+export const useDeleteClass = () => useStudentClassMutation((id: number) => deleteClass(id));

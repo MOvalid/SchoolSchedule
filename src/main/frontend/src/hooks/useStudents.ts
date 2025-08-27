@@ -1,47 +1,36 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
 import {
     getAllStudents,
     createStudent,
     updateStudent,
     deleteStudent,
 } from '../services/StudentService';
-import { StudentDto, ScheduleSlotDto } from '../types/types';
-import { getScheduleForStudent } from '../services/ScheduleService';
+import { CreateStudentDto, StudentDto } from '../types/types';
 
-export const useStudents = () => {
-    return useQuery({
-        queryKey: ['students'],
+const STUDENTS_QUERY_KEY = ['students'];
+
+export const useStudents = () =>
+    useQuery({
+        queryKey: STUDENTS_QUERY_KEY,
         queryFn: async () => (await getAllStudents()).data,
     });
-};
 
-export const useScheduleForStudent = (studentId: number) =>
-    useQuery<ScheduleSlotDto[], Error>({
-        queryKey: ['schedule', 'student', studentId],
-        queryFn: () => getScheduleForStudent(studentId).then((res) => res.data),
-        enabled: !!studentId,
-    });
-
-export const useCreateStudent = () => {
+const useStudentMutation = <TArgs, TResult = void>(
+    mutationFn: (args: TArgs) => Promise<TResult>
+): UseMutationResult<TResult, unknown, TArgs> => {
     const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: StudentDto) => createStudent(data),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['students'] }),
+    return useMutation<TResult, unknown, TArgs>({
+        mutationFn,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: STUDENTS_QUERY_KEY }),
     });
 };
 
-export const useUpdateStudent = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: StudentDto }) => updateStudent(id, data),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['students'] }),
-    });
-};
+export default useStudentMutation;
 
-export const useDeleteStudent = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => deleteStudent(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['students'] }),
-    });
-};
+export const useCreateStudent = () =>
+    useStudentMutation((data: CreateStudentDto) => createStudent(data));
+
+export const useUpdateStudent = () =>
+    useStudentMutation(({ id, data }: { id: number; data: StudentDto }) => updateStudent(id, data));
+
+export const useDeleteStudent = () => useStudentMutation((id: number) => deleteStudent(id));

@@ -2,7 +2,7 @@ import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
 import SlotDetails from './SlotDetails';
 import SlotDialog from './SlotDialog';
 import { Slot, SlotFormValues, TherapistDto, RoomDto, StudentDto } from '../../types/types';
-import { EntityTypes } from '../../types/entityTypes';
+import { EntityTypes } from '../../types/enums/entityTypes';
 
 interface SlotDetailsManagerProps {
     selectedSlot: Slot | null;

@@ -1,17 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getAllScheduleSlots,
     createScheduleSlot,
-    updateScheduleSlot,
     deleteScheduleSlot,
+    deleteStudentScheduleSlot,
+    getAllScheduleSlots,
+    getScheduleForClass,
     getScheduleForStudent,
     getScheduleForTherapist,
-    getScheduleForClass,
+    updateScheduleSlot,
     updateStudentScheduleSlot,
-    deleteStudentScheduleSlot,
 } from '../services/ScheduleService';
 import { ScheduleSlotDto } from '../types/types';
-import { EntityType, EntityTypes } from '../types/entityTypes';
+import { EntityTypes } from '../types/enums/entityTypes';
 import { AxiosError } from 'axios';
 
 type OnErrorFn = (message: string) => void;
@@ -19,20 +19,20 @@ type OnErrorFn = (message: string) => void;
 export const useSchedules = () =>
     useQuery({ queryKey: ['schedules'], queryFn: async () => (await getAllScheduleSlots()).data });
 
-export const useSchedule = (entityType: EntityType, entityId: number) =>
+export const useSchedule = (entityType: EntityTypes, entityId: number) =>
     useQuery<ScheduleSlotDto[], Error>({
         queryKey: ['schedule', entityType, entityId],
         queryFn: async () => {
             switch (entityType) {
-                case 'student': {
+                case EntityTypes.Student: {
                     const res = await getScheduleForStudent(entityId);
                     return res.data;
                 }
-                case 'therapist': {
+                case EntityTypes.Therapist: {
                     const res = await getScheduleForTherapist(entityId);
                     return res.data;
                 }
-                case 'class': {
+                case EntityTypes.Class: {
                     const res = await getScheduleForClass(entityId);
                     return res.data;
                 }
@@ -46,7 +46,7 @@ export const useSchedule = (entityType: EntityType, entityId: number) =>
 
 function useScheduleSlotMutation<TVariables, TResult = unknown>(
     mutationFn: (variables: TVariables) => Promise<TResult>,
-    entityType: EntityType,
+    entityType: EntityTypes,
     entityId: number,
     onError?: OnErrorFn,
     invalidateQueries: string[] = ['schedule']
@@ -90,7 +90,7 @@ interface UpdateStudentSlotProps {
 }
 
 export const useUpdateScheduleSlotForAll = (
-    entityType: EntityType,
+    entityType: EntityTypes,
     entityId: number,
     onError?: OnErrorFn
 ) =>
@@ -102,7 +102,7 @@ export const useUpdateScheduleSlotForAll = (
     );
 
 export const useUpdateScheduleSlotForStudent = (
-    entityType: EntityType,
+    entityType: EntityTypes,
     entityId: number,
     onError?: OnErrorFn
 ) =>
@@ -119,7 +119,7 @@ interface DeleteStudentSlotProps {
     studentId: number;
 }
 export const useDeleteScheduleSlotForAll = (
-    entityType: EntityType,
+    entityType: EntityTypes,
     entityId: number,
     onError?: OnErrorFn
 ) =>
@@ -131,7 +131,7 @@ export const useDeleteScheduleSlotForAll = (
     );
 
 export const useDeleteScheduleSlotForStudent = (
-    entityType: EntityType,
+    entityType: EntityTypes,
     entityId: number,
     onError?: OnErrorFn
 ) =>

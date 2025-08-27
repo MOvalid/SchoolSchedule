@@ -1,11 +1,12 @@
 import api from '../api/api';
-import { StudentClassDto } from '../types/types';
+import { CreateStudentClassDto, StudentClassDto } from '../types/types';
 
 export const getAllClasses = () => api.get<StudentClassDto[]>('/classes');
 
 export const getClassById = (id: number) => api.get<StudentClassDto>(`/classes/${id}`);
 
-export const createClass = (data: StudentClassDto) => api.post<StudentClassDto>('/classes', data);
+export const createClass = (data: CreateStudentClassDto) =>
+    api.post<StudentClassDto>('/classes', data);
 
 export const updateClass = (id: number, data: StudentClassDto) =>
     api.put<StudentClassDto>(`/classes/${id}`, data);

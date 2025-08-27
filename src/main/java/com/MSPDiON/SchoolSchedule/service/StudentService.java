@@ -1,7 +1,9 @@
 package com.MSPDiON.SchoolSchedule.service;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateStudentDto;
 import com.MSPDiON.SchoolSchedule.dto.StudentDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.StudentMapper;
+import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
@@ -48,18 +50,27 @@ public class StudentService {
         return studentMapper.toDto(student);
     }
 
-    public StudentDto create(StudentDto dto) {
+    public StudentDto create(CreateStudentDto dto) {
         Student student = studentMapper.toEntity(dto);
 
         if (dto.getStudentClassId() != null) {
             StudentClass studentClass = studentClassRepository.findById(dto.getStudentClassId())
-                    .orElseThrow(() -> new RuntimeException("Student class not found"));
+                    .orElseThrow(() -> new StudentClassNotFoundException(dto.getStudentClassId()));
             student.setStudentClass(studentClass);
         }
 
         Student saved = studentRepository.save(student);
-        return studentMapper.toDto(saved);
+
+        return StudentDto.builder()
+                .id(saved.getId())
+                .firstName(saved.getFirstName())
+                .lastName(saved.getLastName())
+                .arrivalTime(saved.getArrivalTime())
+                .departureTime(saved.getDepartureTime())
+                .studentClassId(saved.getStudentClass() != null ? saved.getStudentClass().getId() : null)
+                .build();
     }
+
 
     public StudentDto update(Long id, StudentDto dto) {
         Student existing = studentRepository.findById(id)

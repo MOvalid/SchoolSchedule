@@ -1,22 +1,20 @@
 package com.MSPDiON.SchoolSchedule.dto;
 
-import com.MSPDiON.SchoolSchedule.model.Department;
-import com.MSPDiON.SchoolSchedule.model.TherapistRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TherapistDto {
-    private Long id;
+public class CreateStudentDto {
     private String firstName;
     private String lastName;
-    private TherapistRole role;
-    private List<Department> departments;
+    private LocalTime arrivalTime;
+    private LocalTime departureTime;
+    private Long studentClassId;
 }

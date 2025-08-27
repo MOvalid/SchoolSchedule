@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Slot, SlotFormValues, TherapistDto, RoomDto, StudentDto } from '../../types/types';
 import { toISOTime } from '../../utils/DateUtils';
-import { EntityTypes } from '../../types/entityTypes';
+import { EntityTypes } from '../../types/enums/entityTypes';
 
 interface Props {
     open: boolean;

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { RoomDto, Slot, SlotFormValues, StudentDto, TherapistDto } from '../../types/types';
-import { EntityTypes } from '../../types/entityTypes';
+import { EntityTypes } from '../../types/enums/entityTypes';
 import {
     useCreateStudentScheduleSlot,
     useDeleteScheduleSlotForAll,

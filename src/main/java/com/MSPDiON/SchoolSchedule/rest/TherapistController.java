@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.rest;
 
+import com.MSPDiON.SchoolSchedule.dto.CreateTherapistDto;
 import com.MSPDiON.SchoolSchedule.dto.TherapistDto;
 import com.MSPDiON.SchoolSchedule.service.TherapistService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class TherapistController {
     }
 
     @PostMapping
-    public ResponseEntity<TherapistDto> create(@RequestBody TherapistDto dto) {
+    public ResponseEntity<TherapistDto> create(@RequestBody CreateTherapistDto dto) {
         return ResponseEntity.ok(therapistService.create(dto));
     }
 

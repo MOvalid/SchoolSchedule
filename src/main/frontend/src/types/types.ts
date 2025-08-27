@@ -1,4 +1,12 @@
-export type Department = 'SCHOOL' | 'REHABILITATION';
+import { Department } from './enums/department';
+
+export interface CreateStudentDto {
+    firstName: string;
+    lastName: string;
+    arrivalTime?: string;
+    departureTime?: string;
+    studentClassId?: number;
+}
 
 export interface StudentDto {
     id: number;
@@ -8,6 +16,12 @@ export interface StudentDto {
     departureTime?: string;
     studentClassId?: number;
     studentClass?: StudentClassDto;
+}
+
+export interface CreateTherapistDto {
+    firstName: string;
+    lastName: string;
+    department?: Department;
 }
 
 export interface TherapistDto {
@@ -20,6 +34,11 @@ export interface TherapistDto {
 export interface RoomDto {
     id: number;
     name: string;
+}
+
+export interface CreateStudentClassDto {
+    name: string;
+    department?: Department;
 }
 
 export interface StudentClassDto {

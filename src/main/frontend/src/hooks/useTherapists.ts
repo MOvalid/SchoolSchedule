@@ -1,38 +1,36 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
 import {
     getAllTherapists,
     createTherapist,
     updateTherapist,
     deleteTherapist,
 } from '../services/TherapistService';
-import { TherapistDto } from '../types/types';
+import { CreateTherapistDto, TherapistDto } from '../types/types';
+
+const THERAPISTS_QUERY_KEY = ['therapists'];
 
 export const useTherapists = () =>
     useQuery({
-        queryKey: ['therapists'],
+        queryKey: THERAPISTS_QUERY_KEY,
         queryFn: async () => (await getAllTherapists()).data,
     });
 
-export const useCreateTherapist = () => {
+const useTherapistMutation = <TArgs, TResult = void>(
+    mutationFn: (args: TArgs) => Promise<TResult>
+): UseMutationResult<TResult, unknown, TArgs> => {
     const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: TherapistDto) => createTherapist(data),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['therapists'] }),
+    return useMutation<TResult, unknown, TArgs>({
+        mutationFn,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: THERAPISTS_QUERY_KEY }),
     });
 };
 
-export const useUpdateTherapist = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: TherapistDto }) => updateTherapist(id, data),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['therapists'] }),
-    });
-};
+export const useCreateTherapist = () =>
+    useTherapistMutation((data: CreateTherapistDto) => createTherapist(data));
 
-export const useDeleteTherapist = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: number) => deleteTherapist(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['therapists'] }),
-    });
-};
+export const useUpdateTherapist = () =>
+    useTherapistMutation(({ id, data }: { id: number; data: TherapistDto }) =>
+        updateTherapist(id, data)
+    );
+
+export const useDeleteTherapist = () => useTherapistMutation((id: number) => deleteTherapist(id));
