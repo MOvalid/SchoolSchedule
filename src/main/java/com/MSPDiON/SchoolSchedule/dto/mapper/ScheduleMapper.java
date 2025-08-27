@@ -13,10 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,6 +48,7 @@ public class ScheduleMapper {
 
         return ScheduleSlot.builder()
                 .id(dto.getId())
+                .title(dto.getTitle())
                 .therapist(therapist)
                 .room(room)
                 .startTime(start)
@@ -67,14 +66,12 @@ public class ScheduleMapper {
     }
 
     public ScheduleSlot toEntity(CreateScheduleSlotDto dto) {
-        if (dto.getTherapistId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Therapist ID is required");
-        if (dto.getStudentId() == null){
-            if (dto.getStudentIds() != null && !dto.getStudentIds().isEmpty()){
-                dto.setStudentId(dto.getStudentIds().getFirst());
-            }
-            else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student ID is required");
+        if (dto.getTherapistId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Therapist ID is required");
         }
-        if (dto.getRoomId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room ID is required");
+        if (dto.getRoomId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room ID is required");
+        }
 
         Therapist therapist = therapistRepository.findById(dto.getTherapistId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Therapist not found"));
@@ -94,6 +91,9 @@ public class ScheduleMapper {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student not found"));
             students.add(student);
         }
+        if (dto.getStudentIds() != null && !dto.getStudentIds().isEmpty()) {
+            students.addAll(studentRepository.findAllById(dto.getStudentIds()));
+        }
 
         LocalTime start = parseToLocalTime(dto.getStartTime());
         LocalTime end = parseToLocalTime(dto.getEndTime());
@@ -101,30 +101,38 @@ public class ScheduleMapper {
         return ScheduleSlot.builder()
                 .therapist(therapist)
                 .room(room)
+                .title(dto.getTitle())
                 .studentClass(studentClass)
                 .students(students)
                 .startTime(start)
                 .endTime(end)
                 .dayOfWeek(DayOfWeek.of(dto.getDayOfWeek()))
+                .isIndividual(students.size() == 1)
                 .build();
     }
 
+    // ------------------------- ENTITY -> DTO -------------------------
     public ScheduleSlotDto toDto(ScheduleSlot slot) {
         Set<Long> studentIds = slot.getStudents().stream()
                 .map(Student::getId)
                 .collect(Collectors.toSet());
 
+        Long singleStudentId = slot.isIndividual() && !studentIds.isEmpty()
+                ? studentIds.iterator().next()
+                : null;
+
         return ScheduleSlotDto.builder()
                 .id(slot.getId())
+                .title(slot.getTitle())
                 .therapistId(slot.getTherapist().getId())
                 .roomId(slot.getRoom().getId())
+                .studentClassId(slot.getStudentClass() != null ? slot.getStudentClass().getId() : null)
+                .studentIds(studentIds)
+                .studentId(singleStudentId)
                 .startTime(slot.getStartTime().toString())
                 .endTime(slot.getEndTime().toString())
                 .dayOfWeek(slot.getDayOfWeek().getValue())
-                .studentClassId(slot.getStudentClass() != null ? slot.getStudentClass().getId() : null)
-                .studentIds(studentIds)
                 .individual(slot.isIndividual())
                 .build();
     }
 }
-

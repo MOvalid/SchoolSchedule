@@ -87,6 +87,7 @@ public class DataInitializer {
 
             ScheduleSlot slot1 = ScheduleSlot.builder()
                     .dayOfWeek(java.time.DayOfWeek.MONDAY)
+                    .title("Testowe zajęcia")
                     .startTime(LocalTime.of(6, 0))
                     .endTime(LocalTime.of(7, 0))
                     .therapist(therapist1)

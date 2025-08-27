@@ -14,14 +14,16 @@ import java.util.Set;
 @NoArgsConstructor
 public class ScheduleSlotDto {
     private Long id;
+    private String title;
 
     private Long therapistId;
-    private Long studentId;
     private Long roomId;
 
     private boolean individual;
-    private Long studentClassId;
+
+    private Long studentId;
     private Set<Long> studentIds;
+    private Long studentClassId;
 
     private String startTime;
     private String endTime;

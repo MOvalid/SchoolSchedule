@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, UseMutationOptions, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     createScheduleSlot,
     deleteScheduleSlot,
@@ -13,6 +13,7 @@ import {
 import { ScheduleSlotDto } from '../types/types';
 import { EntityTypes } from '../types/enums/entityTypes';
 import { AxiosError } from 'axios';
+import { useSnackbar } from '../context/SnackbarContext';
 
 type OnErrorFn = (message: string) => void;
 
@@ -69,6 +70,59 @@ function useScheduleSlotMutation<TVariables, TResult = unknown>(
     });
 }
 
+type MutationWithSnackbarOptions<TData, TError, TVariables> = UseMutationOptions<
+    TData,
+    TError,
+    TVariables
+> & {
+    successMessage?: string;
+    errorMessage?: string;
+    entityType?: EntityTypes;
+    entityId?: number;
+    invalidateQueries?: string[];
+};
+
+export function useMutationWithSnackbar<TData = unknown, TError = AxiosError, TVariables = void>(
+    mutationFn: (variables: TVariables) => Promise<TData>,
+    {
+        successMessage,
+        errorMessage,
+        entityType,
+        entityId,
+        invalidateQueries = ['schedule'],
+        ...options
+    }: MutationWithSnackbarOptions<TData, TError, TVariables> = {}
+) {
+    const { showSnackbar } = useSnackbar();
+    const queryClient = useQueryClient();
+
+    return useMutation<TData, TError, TVariables>({
+        mutationFn,
+        ...options,
+        onSuccess: (data, variables, context) => {
+            if (successMessage) {
+                showSnackbar(successMessage, 'success');
+            }
+            if (entityType && entityId) {
+                queryClient.invalidateQueries({
+                    queryKey: [...invalidateQueries, entityType, entityId],
+                });
+            }
+            options.onSuccess?.(data, variables, context);
+        },
+        onError: (error: TError, variables, context) => {
+            let msg = errorMessage || 'Unexpected error occurred';
+            if (error instanceof AxiosError) {
+                msg = error.response?.data?.message || msg;
+            } else if (error instanceof Error) {
+                msg = error.message;
+            }
+            showSnackbar(msg, 'error');
+            options.onError?.(error, variables, context);
+        },
+    });
+}
+
 // CREATE
 interface CreateStudentSlotProps {
     studentId: number;
@@ -76,7 +130,7 @@ interface CreateStudentSlotProps {
 }
 export const useCreateStudentScheduleSlot = (onError?: OnErrorFn) =>
     useScheduleSlotMutation<CreateStudentSlotProps>(
-        ({ studentId, data }) => createScheduleSlot(studentId, data),
+        ({ studentId, data }) => createScheduleSlot(EntityTypes.Student, studentId, data),
         EntityTypes.Student,
         0,
         onError
@@ -89,28 +143,25 @@ interface UpdateStudentSlotProps {
     data: ScheduleSlotDto;
 }
 
-export const useUpdateScheduleSlotForAll = (
-    entityType: EntityTypes,
-    entityId: number,
-    onError?: OnErrorFn
-) =>
-    useScheduleSlotMutation<{ id: number; data: ScheduleSlotDto }>(
-        ({ id, data }) => updateScheduleSlot(id, data),
-        entityType,
-        entityId,
-        onError
+export const useUpdateScheduleSlotForAll = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(
+        ({ id, data }: { id: number; data: ScheduleSlotDto }) => updateScheduleSlot(id, data),
+        {
+            successMessage: 'Slot zaktualizowany pomyślnie',
+            entityType,
+            entityId,
+        }
     );
 
-export const useUpdateScheduleSlotForStudent = (
-    entityType: EntityTypes,
-    entityId: number,
-    onError?: OnErrorFn
-) =>
-    useScheduleSlotMutation<UpdateStudentSlotProps>(
-        ({ id, studentId, data }) => updateStudentScheduleSlot(studentId, id, data),
-        entityType,
-        entityId,
-        onError
+export const useUpdateScheduleSlotForStudent = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(
+        ({ id, studentId, data }: UpdateStudentSlotProps) =>
+            updateStudentScheduleSlot(studentId, id, data),
+        {
+            successMessage: 'Slot ucznia zaktualizowany pomyślnie',
+            entityType,
+            entityId,
+        }
     );
 
 // DELETE
@@ -118,26 +169,68 @@ interface DeleteStudentSlotProps {
     id: number;
     studentId: number;
 }
-export const useDeleteScheduleSlotForAll = (
-    entityType: EntityTypes,
-    entityId: number,
-    onError?: OnErrorFn
-) =>
-    useScheduleSlotMutation<{ id: number }>(
-        ({ id }) => deleteScheduleSlot(id),
+export const useDeleteScheduleSlotForAll = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(({ id }: { id: number }) => deleteScheduleSlot(id), {
+        successMessage: 'Slot usunięty pomyślnie',
         entityType,
         entityId,
-        onError
+    });
+
+export const useDeleteScheduleSlotForStudent = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(
+        ({ id, studentId }: DeleteStudentSlotProps) => deleteStudentScheduleSlot(studentId, id),
+        {
+            successMessage: 'Slot ucznia usunięty pomyślnie',
+            entityType,
+            entityId,
+        }
     );
 
-export const useDeleteScheduleSlotForStudent = (
-    entityType: EntityTypes,
-    entityId: number,
-    onError?: OnErrorFn
-) =>
-    useScheduleSlotMutation<DeleteStudentSlotProps>(
-        ({ id, studentId }) => deleteStudentScheduleSlot(studentId, id),
-        entityType,
-        entityId,
-        onError
+// -------------------- UNIVERSAL HOOKS --------------------
+
+// CREATE generic slot for any entity
+interface CreateSlotProps {
+    entityId: number;
+    data: ScheduleSlotDto;
+}
+export const useCreateScheduleSlot = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(
+        ({ entityId, data }: CreateSlotProps) => createScheduleSlot(entityType, entityId, data),
+        {
+            successMessage: 'Slot utworzony pomyślnie',
+            entityType,
+            entityId,
+        }
+    );
+
+// UPDATE generic slot for any entity
+interface UpdateSlotForEntityProps {
+    id: number;
+    entityId: number;
+    data: ScheduleSlotDto;
+}
+export const useUpdateScheduleSlotForEntity = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(
+        ({ id, entityId, data }: UpdateSlotForEntityProps) =>
+            updateStudentScheduleSlot(entityId, id, data),
+        {
+            successMessage: 'Slot zaktualizowany pomyślnie',
+            entityType,
+            entityId,
+        }
+    );
+
+// DELETE generic slot for any entity
+interface DeleteSlotForEntityProps {
+    id: number;
+    entityId: number;
+}
+export const useDeleteScheduleSlotForEntity = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(
+        ({ id, entityId }: DeleteSlotForEntityProps) => deleteStudentScheduleSlot(entityId, id),
+        {
+            successMessage: 'Slot usunięty pomyślnie',
+            entityType,
+            entityId,
+        }
     );

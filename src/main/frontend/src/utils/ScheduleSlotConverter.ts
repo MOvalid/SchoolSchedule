@@ -2,7 +2,7 @@ import { ScheduleSlotDto, Slot, SlotFormValues } from '../types/types';
 
 const getMondayOfCurrentWeekUTC = (): Date => {
     const now = new Date();
-    const utcDay = now.getUTCDay(); // 0 (niedziela) - 6 (sobota)
+    const utcDay = now.getUTCDay();
     const diff = (utcDay === 0 ? -6 : 1) - utcDay;
     now.setUTCDate(now.getUTCDate() + diff);
     now.setUTCHours(0, 0, 0, 0);

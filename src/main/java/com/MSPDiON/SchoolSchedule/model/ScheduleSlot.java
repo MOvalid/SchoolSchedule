@@ -21,19 +21,31 @@ public class ScheduleSlot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @Column
+    private String title;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "therapist_id")
     private Therapist therapist;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "room_id")
     private Room room;
 
+    @Column(nullable = false)
     private LocalTime startTime;
+
+    @Column(nullable = false)
     private LocalTime endTime;
+
+    @Column(nullable = false)
     private DayOfWeek dayOfWeek;
 
+    @Column(nullable = false)
     private boolean isIndividual;
 
     @ManyToOne
+    @JoinColumn(name = "student_class_id")
     private StudentClass studentClass;
 
     @ManyToMany

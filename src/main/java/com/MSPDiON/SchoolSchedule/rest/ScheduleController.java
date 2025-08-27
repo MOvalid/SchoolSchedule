@@ -87,9 +87,18 @@ public class ScheduleController {
         scheduleService.deleteScheduleSlotForSingleStudent(id, studentId);
     }
 
-    @PostMapping("/student/{id}")
-    public ResponseEntity<ScheduleSlotDto> createSlotForStudent(@PathVariable Long id, @RequestBody CreateScheduleSlotDto dto) {
-        dto.setStudentId(id);
+    @PostMapping("/{entityType}/{entityId}")
+    public ResponseEntity<ScheduleSlotDto> createSlotForEntity(
+            @PathVariable String entityType,
+            @PathVariable Long entityId,
+            @RequestBody CreateScheduleSlotDto dto
+    ) {
+        switch (entityType.toLowerCase()) {
+            case "student" -> dto.setStudentId(entityId);
+            case "therapist" -> { }
+            case "class" -> dto.setStudentClassId(entityId);
+            default -> throw new IllegalArgumentException("Unknown entityType: " + entityType);
+        }
         System.out.println(dto);
         ScheduleSlotDto created = scheduleService.createScheduleSlot(dto);
         return ResponseEntity.ok(created);

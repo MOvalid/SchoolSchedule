@@ -1,11 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import StudentSchedulePage from './components/pages/StudentSchedulePage';
-import { StudentScheduleCalendarPage } from './components/student/StudentScheduleCalendarPage';
-import ClassSchedulePage from './components/pages/ClassSchedulePage';
-import TherapistSchedulePage from './components/pages/TherapistSchedulePage';
 import { AppBar, Toolbar, Button, Box, Typography } from '@mui/material';
 import CreateEntityPage from './components/pages/CreateEntityPage';
+import EntitySchedulePage from './components/common/EntitySchedulePage';
+import { ScheduleCalendarPage } from './components/common/CommonScheduleCalendarPage';
+import { EntityTypes } from './types/enums/entityTypes';
 
 const AppRoutes = () => (
     <Router>
@@ -33,15 +32,22 @@ const AppRoutes = () => (
 
         <Box sx={{ mt: 4, px: 2 }}>
             <Routes>
-                <Route path="/students" element={<StudentSchedulePage />} />
-                <Route path="/classes" element={<ClassSchedulePage />} />
-                <Route path="/therapists" element={<TherapistSchedulePage />} />
-                <Route path="/create-entity" element={<CreateEntityPage />} />
                 <Route
-                    path="/schedule/student/:entityId"
-                    element={<StudentScheduleCalendarPage />}
+                    path="/students"
+                    element={<EntitySchedulePage entityType={EntityTypes.Student} />}
                 />
-                {/*<Route path="/schedule/:entityType/:entityId" element={<StudentScheduleCalendarPage />} />*/}
+                <Route
+                    path="/therapists"
+                    element={<EntitySchedulePage entityType={EntityTypes.Therapist} />}
+                />
+                <Route
+                    path="/classes"
+                    element={<EntitySchedulePage entityType={EntityTypes.Class} />}
+                />
+                <Route path="/create-entity" element={<CreateEntityPage />} />
+
+                <Route path="/schedule/:entityType/:entityId" element={<ScheduleCalendarPage />} />
+
                 <Route
                     path="*"
                     element={

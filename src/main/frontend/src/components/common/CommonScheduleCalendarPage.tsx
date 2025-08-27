@@ -2,34 +2,34 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import {
-    RoomDto,
     Slot,
     SlotFormValues,
-    StudentClassDto,
     StudentDto,
     TherapistDto,
+    RoomDto,
+    StudentClassDto,
 } from '../../types/types';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import {
-    useCreateStudentScheduleSlot,
+    useCreateScheduleSlot,
     useDeleteScheduleSlotForAll,
-    useDeleteScheduleSlotForStudent,
+    useDeleteScheduleSlotForEntity,
     useSchedule,
     useUpdateScheduleSlotForAll,
-    useUpdateScheduleSlotForStudent,
+    useUpdateScheduleSlotForEntity,
 } from '../../hooks/useSchedules';
+import { getAllStudents } from '../../services/StudentService';
 import { getAllTherapists } from '../../services/TherapistService';
 import { getAllRooms } from '../../services/RoomService';
 import {
     convertFormValuesToScheduleSlotDto,
     convertScheduleSlotDto,
 } from '../../utils/ScheduleSlotConverter';
-import ActionButtons from './ActionButtons';
-import ScheduleCalendar from './ScheduleCalendar';
 import { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
-import SlotDetailsManager from './SlotDetailsManager';
-import { getAllStudents } from '../../services/StudentService';
+import ActionButtons from '../student/ActionButtons';
+import ScheduleCalendar from '../student/ScheduleCalendar';
+import SlotDetailsManager from '../student/SlotDetailsManager';
 import { getAllClasses } from '../../services/StudentClassService';
 
 interface LocationState {
@@ -38,9 +38,9 @@ interface LocationState {
     name: string;
 }
 
-export const StudentScheduleCalendarPage: React.FC = () => {
+export const ScheduleCalendarPage: React.FC = () => {
     const location = useLocation();
-    const { entityType, entityId: studentId, name } = location.state as LocationState;
+    const { entityType, entityId, name } = location.state as LocationState;
 
     const [events, setEvents] = useState<Slot[]>([]);
     const [editMode, setEditMode] = useState(false);
@@ -60,44 +60,29 @@ export const StudentScheduleCalendarPage: React.FC = () => {
     const [students, setStudents] = useState<StudentDto[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClassDto[]>([]);
 
-    const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, studentId);
-    const createSlot = useCreateStudentScheduleSlot();
+    const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, entityId);
+    const createSlot = useCreateScheduleSlot(entityType, entityId);
+    const updateSlotForAll = useUpdateScheduleSlotForAll(entityType, entityId);
+    const updateSlotForEntity = useUpdateScheduleSlotForEntity(entityType, entityId);
+    const deleteSlotForAll = useDeleteScheduleSlotForAll(entityType, entityId);
+    const deleteSlotForEntity = useDeleteScheduleSlotForEntity(entityType, entityId);
 
-    const updateSlotForAll = useUpdateScheduleSlotForAll(entityType, studentId);
-    const updateSlotForStudent = useUpdateScheduleSlotForStudent(entityType, studentId);
-
-    const deleteSlotForAll = useDeleteScheduleSlotForAll(entityType, studentId);
-    const deleteSlotForStudent = useDeleteScheduleSlotForStudent(entityType, studentId);
-
-    const editSlot = (slot: Slot, formValues: SlotFormValues) => {
-        const dto = convertFormValuesToScheduleSlotDto(formValues);
+    const handleSlotSave = (slot: Slot, values: SlotFormValues) => {
+        const dto = convertFormValuesToScheduleSlotDto(values);
 
         if (slot.slotId) {
-            if (formValues.applyToAll) {
-                updateSlotForAll.mutate({ id: slot.slotId, data: dto });
-            } else {
-                updateSlotForStudent.mutate({ id: slot.slotId, studentId, data: dto });
-            }
+            if (values.applyToAll) updateSlotForAll.mutate({ id: slot.slotId, data: dto });
+            else updateSlotForEntity.mutate({ id: slot.slotId, entityId, data: dto });
         } else {
-            createSlot.mutate({ studentId, data: dto });
+            createSlot.mutate({ entityId, data: dto });
         }
     };
 
-    useEffect(() => {
-        getAllRooms().then((res) => setRooms(res.data));
-        getAllTherapists().then((res) => setTherapists(res.data));
-        getAllStudents().then((res) => setStudents(res.data));
-        getAllClasses().then((res) => setStudentClasses(res.data));
-    }, [entityType]);
-
-    useEffect(() => {
-        if (rawSchedule.length) setEvents(rawSchedule.map(convertScheduleSlotDto));
-    }, [
-        rawSchedule,
-        useDeleteScheduleSlotForStudent,
-        useDeleteScheduleSlotForAll,
-        useCreateStudentScheduleSlot,
-    ]);
+    const handleDeleteSlot = (slot: Slot, applyToAll: boolean) => {
+        if (!slot.slotId) return;
+        if (applyToAll) deleteSlotForAll.mutate({ id: slot.slotId });
+        else deleteSlotForEntity.mutate({ id: slot.slotId, entityId });
+    };
 
     const handleEventClick = (arg: EventClickArg) => {
         const event = events.find((e) => e.id === arg.event.id);
@@ -110,20 +95,10 @@ export const StudentScheduleCalendarPage: React.FC = () => {
             end: event.end,
             therapistId: event.therapistId,
             roomId: event.roomId,
-            studentIds: event.studentIds ?? [studentId],
+            studentIds: event.studentIds ?? (entityType === EntityTypes.Student ? [entityId] : []),
             studentClassId: event.studentClassId,
             applyToAll: true,
         });
-    };
-
-    const deleteSlot = (slot: Slot, applyToAll: boolean) => {
-        if (!slot.slotId) return;
-
-        if (applyToAll) {
-            deleteSlotForAll.mutate({ id: slot.slotId });
-        } else {
-            deleteSlotForStudent.mutate({ id: slot.slotId, studentId });
-        }
     };
 
     const handleDateClick = (arg: DateClickArg) => {
@@ -139,7 +114,7 @@ export const StudentScheduleCalendarPage: React.FC = () => {
             start: startDateTime,
             end: endDateTime.toISOString(),
             therapistId: undefined,
-            studentIds: [],
+            studentIds: entityType === EntityTypes.Student ? [entityId] : [],
             studentClassId: undefined,
         };
 
@@ -150,18 +125,26 @@ export const StudentScheduleCalendarPage: React.FC = () => {
             end: endDateTime.toISOString(),
             therapistId: undefined,
             roomId: undefined,
-            studentIds: [studentId],
+            studentIds: entityType === EntityTypes.Student ? [entityId] : [],
             studentClassId: undefined,
             applyToAll: true,
         });
 
-        setTimeout(() => {
-            document.dispatchEvent(new CustomEvent('openSlotDialog'));
-        }, 0);
+        setTimeout(() => document.dispatchEvent(new CustomEvent('openSlotDialog')), 0);
     };
 
-    if (isLoading) return <Typography>Ładowanie grafiku...</Typography>;
+    useEffect(() => {
+        getAllRooms().then((res) => setRooms(res.data));
+        getAllTherapists().then((res) => setTherapists(res.data));
+        getAllStudents().then((res) => setStudents(res.data));
+        getAllClasses().then((res) => setStudentClasses(res.data));
+    }, [entityType]);
 
+    useEffect(() => {
+        setEvents(rawSchedule.map(convertScheduleSlotDto));
+    }, [rawSchedule]);
+
+    if (isLoading) return <Typography>Ładowanie grafiku...</Typography>;
     if (error)
         return <Typography color="error">Błąd ładowania grafiku: {error.message}</Typography>;
 
@@ -192,9 +175,9 @@ export const StudentScheduleCalendarPage: React.FC = () => {
                 rooms={rooms}
                 students={students}
                 entityType={entityType}
-                studentId={studentId}
-                editSlot={editSlot}
-                deleteSlot={deleteSlot}
+                studentId={entityId}
+                editSlot={handleSlotSave}
+                deleteSlot={handleDeleteSlot}
                 formValues={formValues}
                 setFormValues={setFormValues}
             />
