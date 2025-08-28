@@ -1,5 +1,6 @@
 package com.MSPDiON.SchoolSchedule.data;
 
+import com.MSPDiON.SchoolSchedule.model.Department;
 import com.MSPDiON.SchoolSchedule.model.Room;
 import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
 import com.MSPDiON.SchoolSchedule.model.Student;
@@ -68,6 +69,7 @@ public class DataInitializer {
               .firstName("Marek")
               .lastName("Nowicki")
               .role(TherapistRole.PSYCHOLOGIST)
+              .departments(List.of(Department.ZRW))
               .build();
 
       Therapist therapist2 =
@@ -75,6 +77,7 @@ public class DataInitializer {
               .firstName("Ewa")
               .lastName("Kowal")
               .role(TherapistRole.SPEECH_THERAPIST)
+              .departments(List.of(Department.DEPT_1, Department.DEPT_2))
               .build();
 
       therapistRepository.saveAll(List.of(therapist1, therapist2));

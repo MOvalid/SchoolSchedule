@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     TextField,
     FormControl,
@@ -11,20 +11,37 @@ import {
     Typography,
 } from '@mui/material';
 import { Department, DepartmentLabels } from '../../types/enums/department';
-import { useCreateClass } from '../../hooks/useStudentClasses';
+import { useCreateClass, useUpdateClass } from '../../hooks/useStudentClasses';
 import { useSnackbar } from '../../context/SnackbarContext';
+import { StudentClassDto } from '../../types/types';
 
 const departments = Object.values(Department);
 
-const ClassForm: React.FC = () => {
+interface Props {
+    mode?: 'create' | 'edit';
+    initialData?: StudentClassDto;
+    onSuccess?: () => void;
+}
+
+const ClassForm: React.FC<Props> = ({ mode = 'create', initialData, onSuccess }) => {
     const snackbar = useSnackbar();
     const createClass = useCreateClass();
+    const updateClass = useUpdateClass();
 
     const [formValues, setFormValues] = useState<{ name: string; department?: Department }>({
         name: '',
         department: undefined,
     });
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
+
+    useEffect(() => {
+        if (mode === 'edit' && initialData) {
+            setFormValues({
+                name: initialData.name,
+                department: initialData.department,
+            });
+        }
+    }, [mode, initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -43,24 +60,47 @@ const ClassForm: React.FC = () => {
     const handleSubmit = () => {
         if (!validate()) return;
 
-        createClass.mutate(
-            { name: formValues.name, department: formValues.department },
-            {
-                onSuccess: () => {
-                    snackbar.showSnackbar('Klasa została dodana pomyślnie!', 'success');
-                    setFormValues({ name: '', department: undefined });
+        if (mode === 'create') {
+            createClass.mutate(
+                { name: formValues.name, department: formValues.department! },
+                {
+                    onSuccess: () => {
+                        snackbar.showSnackbar('Klasa została dodana pomyślnie!', 'success');
+                        setFormValues({ name: '', department: undefined });
+                        onSuccess?.();
+                    },
+                    onError: () => {
+                        snackbar.showSnackbar('Błąd podczas dodawania klasy.', 'error');
+                    },
+                }
+            );
+        } else if (mode === 'edit' && initialData) {
+            updateClass.mutate(
+                {
+                    id: initialData.id,
+                    data: {
+                        id: initialData.id,
+                        name: formValues.name,
+                        department: formValues.department!,
+                    } as StudentClassDto,
                 },
-                onError: () => {
-                    snackbar.showSnackbar('Błąd podczas dodawania klasy.', 'error');
-                },
-            }
-        );
+                {
+                    onSuccess: () => {
+                        snackbar.showSnackbar('Klasa została zaktualizowana pomyślnie!', 'success');
+                        onSuccess?.();
+                    },
+                    onError: () => {
+                        snackbar.showSnackbar('Błąd podczas edycji klasy.', 'error');
+                    },
+                }
+            );
+        }
     };
 
     return (
         <>
             <Typography variant="h6" gutterBottom>
-                Dodaj klasę
+                {mode === 'create' ? 'Dodaj klasę' : 'Edytuj klasę'}
             </Typography>
 
             <TextField
@@ -98,7 +138,7 @@ const ClassForm: React.FC = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button variant="contained" onClick={handleSubmit} sx={{ width: '40%' }}>
-                    Zapisz
+                    {mode === 'create' ? 'Zapisz' : 'Aktualizuj'}
                 </Button>
             </Box>
         </>

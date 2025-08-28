@@ -1,4 +1,5 @@
 import { Department } from './enums/department';
+import { TherapistRole } from './enums/therapistRole';
 
 export interface CreateStudentDto {
     firstName: string;
@@ -28,7 +29,8 @@ export interface TherapistDto {
     id: number;
     firstName: string;
     lastName: string;
-    department?: Department;
+    role: TherapistRole;
+    departments: Department[];
 }
 
 export interface RoomDto {

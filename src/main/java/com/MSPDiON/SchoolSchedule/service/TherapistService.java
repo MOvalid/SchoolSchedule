@@ -40,6 +40,7 @@ public class TherapistService {
     existing.setFirstName(dto.getFirstName());
     existing.setLastName(dto.getLastName());
     existing.setRole(dto.getRole());
+    existing.setDepartments(dto.getDepartments());
     return therapistMapper.toDto(therapistRepository.save(existing));
   }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Button,
@@ -9,17 +9,20 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { useCreateStudent } from '../../hooks/useStudents';
+import { useCreateStudent, useUpdateStudent } from '../../hooks/useStudents';
 import { useStudentClasses } from '../../hooks/useStudentClasses';
-import { CreateStudentDto } from '../../types/types';
+import { CreateStudentDto, StudentDto } from '../../types/types';
 import { useSnackbar } from '../../context/SnackbarContext';
 
 interface Props {
+    mode?: 'create' | 'edit';
+    initialData?: StudentDto;
     onSuccess?: () => void;
 }
 
-export const StudentForm: React.FC<Props> = ({ onSuccess }) => {
+export const StudentForm: React.FC<Props> = ({ mode = 'create', initialData, onSuccess }) => {
     const snackbar = useSnackbar();
+
     const [formValues, setFormValues] = useState<CreateStudentDto>({
         firstName: '',
         lastName: '',
@@ -30,7 +33,20 @@ export const StudentForm: React.FC<Props> = ({ onSuccess }) => {
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     const createStudent = useCreateStudent();
+    const updateStudent = useUpdateStudent();
     const { data: classes = [], isLoading } = useStudentClasses();
+
+    useEffect(() => {
+        if (mode === 'edit' && initialData) {
+            setFormValues({
+                firstName: initialData.firstName,
+                lastName: initialData.lastName,
+                studentClassId: initialData.studentClassId,
+                arrivalTime: initialData.arrivalTime || '',
+                departureTime: initialData.departureTime || '',
+            });
+        }
+    }, [mode, initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormValues({ ...formValues, [e.target.name]: e.target.value });
@@ -53,22 +69,37 @@ export const StudentForm: React.FC<Props> = ({ onSuccess }) => {
             return;
         }
 
-        createStudent.mutate(formValues, {
-            onSuccess: () => {
-                onSuccess?.();
-                setFormValues({
-                    firstName: '',
-                    lastName: '',
-                    studentClassId: undefined,
-                    arrivalTime: '',
-                    departureTime: '',
-                });
-                snackbar.showSnackbar('Uczeń został dodany pomyślnie!', 'success');
-            },
-            onError: () => {
-                snackbar.showSnackbar('Błąd podczas dodawania ucznia.', 'error');
-            },
-        });
+        if (mode === 'create') {
+            createStudent.mutate(formValues, {
+                onSuccess: () => {
+                    onSuccess?.();
+                    setFormValues({
+                        firstName: '',
+                        lastName: '',
+                        studentClassId: undefined,
+                        arrivalTime: '',
+                        departureTime: '',
+                    });
+                    snackbar.showSnackbar('Uczeń został dodany pomyślnie!', 'success');
+                },
+                onError: () => {
+                    snackbar.showSnackbar('Błąd podczas dodawania ucznia.', 'error');
+                },
+            });
+        } else if (mode === 'edit' && initialData) {
+            updateStudent.mutate(
+                { id: initialData.id, data: { id: initialData.id, ...formValues } },
+                {
+                    onSuccess: () => {
+                        onSuccess?.();
+                        snackbar.showSnackbar('Uczeń został zaktualizowany pomyślnie!', 'success');
+                    },
+                    onError: () => {
+                        snackbar.showSnackbar('Błąd podczas edycji ucznia.', 'error');
+                    },
+                }
+            );
+        }
     };
 
     if (isLoading) return <Typography>Ładowanie klas...</Typography>;
@@ -76,7 +107,7 @@ export const StudentForm: React.FC<Props> = ({ onSuccess }) => {
     return (
         <>
             <Typography variant="h6" gutterBottom>
-                Dodaj ucznia
+                {mode === 'create' ? 'Dodaj ucznia' : 'Edytuj ucznia'}
             </Typography>
 
             <TextField
@@ -139,7 +170,7 @@ export const StudentForm: React.FC<Props> = ({ onSuccess }) => {
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button variant="contained" onClick={handleSubmit} sx={{ width: '40%' }}>
-                    Zapisz
+                    {mode === 'create' ? 'Zapisz' : 'Aktualizuj'}
                 </Button>
             </Box>
         </>

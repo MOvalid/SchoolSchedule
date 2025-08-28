@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     TextField,
     FormControl,
@@ -15,15 +15,23 @@ import {
 } from '@mui/material';
 import { Department, DepartmentLabels } from '../../types/enums/department';
 import { TherapistRole, TherapistRoleLabels } from '../../types/enums/therapistRole';
-import { useCreateTherapist } from '../../hooks/useTherapists';
+import { useCreateTherapist, useUpdateTherapist } from '../../hooks/useTherapists';
 import { useSnackbar } from '../../context/SnackbarContext';
+import { TherapistDto } from '../../types/types';
 
 const departments = Object.values(Department);
 const therapistRoles = Object.values(TherapistRole);
 
-const TherapistForm: React.FC = () => {
+interface Props {
+    mode?: 'create' | 'edit';
+    initialData?: TherapistDto;
+    onSuccess?: () => void;
+}
+
+const TherapistForm: React.FC<Props> = ({ mode = 'create', initialData, onSuccess }) => {
     const snackbar = useSnackbar();
     const createTherapist = useCreateTherapist();
+    const updateTherapist = useUpdateTherapist();
 
     const [formValues, setFormValues] = useState({
         firstName: '',
@@ -32,6 +40,17 @@ const TherapistForm: React.FC = () => {
         role: '' as TherapistRole | '',
     });
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
+
+    useEffect(() => {
+        if (mode === 'edit' && initialData) {
+            setFormValues({
+                firstName: initialData.firstName,
+                lastName: initialData.lastName,
+                departments: initialData.departments ?? [],
+                role: initialData.role ?? '',
+            });
+        }
+    }, [mode, initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -67,21 +86,49 @@ const TherapistForm: React.FC = () => {
     const handleSubmit = () => {
         if (!validate()) return;
 
-        createTherapist.mutate(formValues, {
-            onSuccess: () => {
-                snackbar.showSnackbar('Terapeuta został dodany pomyślnie!', 'success');
-                setFormValues({ firstName: '', lastName: '', departments: [], role: '' });
-            },
-            onError: () => {
-                snackbar.showSnackbar('Błąd podczas dodawania terapeuty.', 'error');
-            },
-        });
+        if (mode === 'create') {
+            createTherapist.mutate(formValues, {
+                onSuccess: () => {
+                    snackbar.showSnackbar('Terapeuta został dodany pomyślnie!', 'success');
+                    setFormValues({ firstName: '', lastName: '', departments: [], role: '' });
+                    onSuccess?.();
+                },
+                onError: () => {
+                    snackbar.showSnackbar('Błąd podczas dodawania terapeuty.', 'error');
+                },
+            });
+        } else if (mode === 'edit' && initialData) {
+            updateTherapist.mutate(
+                {
+                    id: initialData.id,
+                    data: {
+                        id: initialData.id,
+                        firstName: formValues.firstName,
+                        lastName: formValues.lastName,
+                        departments: formValues.departments,
+                        role: formValues.role as TherapistRole,
+                    },
+                },
+                {
+                    onSuccess: () => {
+                        snackbar.showSnackbar(
+                            'Terapeuta został zaktualizowany pomyślnie!',
+                            'success'
+                        );
+                        onSuccess?.();
+                    },
+                    onError: () => {
+                        snackbar.showSnackbar('Błąd podczas edycji terapeuty.', 'error');
+                    },
+                }
+            );
+        }
     };
 
     return (
         <>
             <Typography variant="h6" gutterBottom>
-                Dodaj terapeutę
+                {mode === 'create' ? 'Dodaj terapeutę' : 'Edytuj terapeutę'}
             </Typography>
 
             <TextField
@@ -134,7 +181,7 @@ const TherapistForm: React.FC = () => {
                 <Select
                     labelId="role-select-label"
                     value={formValues.role}
-                    onChange={(e) => handleSelectChange('role', e.target.value)}
+                    onChange={(e) => handleSelectChange('role', e.target.value as TherapistRole)}
                 >
                     {therapistRoles.map((role) => (
                         <MenuItem key={role} value={role}>
@@ -147,7 +194,7 @@ const TherapistForm: React.FC = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button variant="contained" onClick={handleSubmit} sx={{ width: '40%' }}>
-                    Zapisz
+                    {mode === 'create' ? 'Zapisz' : 'Aktualizuj'}
                 </Button>
             </Box>
         </>

@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { AppBar, Toolbar, Button, Box, Typography } from '@mui/material';
-import CreateEntityPage from './components/pages/CreateEntityPage';
 import EntitySchedulePage from './components/common/EntitySchedulePage';
 import { ScheduleCalendarPage } from './components/common/CommonScheduleCalendarPage';
 import { EntityTypes } from './types/enums/entityTypes';
+import ManageEntityPage from './components/pages/ManageEntityPage';
 
 const AppRoutes = () => (
     <Router>
@@ -32,7 +32,7 @@ const AppRoutes = () => (
                     <Button color="inherit" component={Link} to="/therapists">
                         Terapeuci
                     </Button>
-                    <Button color="inherit" component={Link} to="/create-entity">
+                    <Button color="inherit" component={Link} to="/manage-entity">
                         Zarządzanie szkołą
                     </Button>
                 </Box>
@@ -53,7 +53,7 @@ const AppRoutes = () => (
                     path="/classes"
                     element={<EntitySchedulePage entityType={EntityTypes.Class} />}
                 />
-                <Route path="/create-entity" element={<CreateEntityPage />} />
+                <Route path="/manage-entity" element={<ManageEntityPage />} />
 
                 <Route path="/schedule/:entityType/:entityId" element={<ScheduleCalendarPage />} />
 
