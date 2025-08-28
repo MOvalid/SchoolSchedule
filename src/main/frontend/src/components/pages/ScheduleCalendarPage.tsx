@@ -27,9 +27,9 @@ import {
 } from '../../utils/ScheduleSlotConverter';
 import { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
-import ActionButtons from '../student/ActionButtons';
-import ScheduleCalendar from '../student/ScheduleCalendar';
-import SlotDetailsManager from '../student/SlotDetailsManager';
+import ActionButtons from '../common/ActionButtons';
+import ScheduleCalendar from '../common/ScheduleCalendar';
+import SlotDetailsManager from '../slots/SlotDetailsManager';
 import { getAllClasses } from '../../services/StudentClassService';
 
 interface LocationState {

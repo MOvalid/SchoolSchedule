@@ -17,7 +17,7 @@ interface Props {
     entityType: EntityTypes;
 }
 
-const EntitySchedulePage: React.FC<Props> = ({ entityType }) => {
+const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
     const [options, setOptions] = useState<EntityOption[]>([]);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const navigate = useNavigate();
@@ -109,4 +109,4 @@ const EntitySchedulePage: React.FC<Props> = ({ entityType }) => {
     );
 };
 
-export default EntitySchedulePage;
+export default EntitySearchPage;

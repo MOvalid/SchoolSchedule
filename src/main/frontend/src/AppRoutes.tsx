@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { AppBar, Toolbar, Button, Box, Typography } from '@mui/material';
-import EntitySchedulePage from './components/common/EntitySchedulePage';
-import { ScheduleCalendarPage } from './components/common/CommonScheduleCalendarPage';
+import EntitySearchPage from './components/pages/EntitySearchPage';
 import { EntityTypes } from './types/enums/entityTypes';
 import ManageEntityPage from './components/pages/ManageEntityPage';
+import { ScheduleCalendarPage } from './components/pages/ScheduleCalendarPage';
 
 const AppRoutes = () => (
     <Router>
@@ -43,15 +43,15 @@ const AppRoutes = () => (
             <Routes>
                 <Route
                     path="/students"
-                    element={<EntitySchedulePage entityType={EntityTypes.Student} />}
+                    element={<EntitySearchPage entityType={EntityTypes.Student} />}
                 />
                 <Route
                     path="/therapists"
-                    element={<EntitySchedulePage entityType={EntityTypes.Therapist} />}
+                    element={<EntitySearchPage entityType={EntityTypes.Therapist} />}
                 />
                 <Route
                     path="/classes"
-                    element={<EntitySchedulePage entityType={EntityTypes.Class} />}
+                    element={<EntitySearchPage entityType={EntityTypes.Class} />}
                 />
                 <Route path="/manage-entity" element={<ManageEntityPage />} />
 
