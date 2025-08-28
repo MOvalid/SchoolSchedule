@@ -9,15 +9,28 @@ import {
     Stack,
     FormControlLabel,
     Checkbox,
+    Grid,
+    IconButton,
 } from '@mui/material';
-import { Slot, TherapistDto, RoomDto } from '../../types/types';
+import CloseIcon from '@mui/icons-material/Close';
+import { Slot, TherapistDto, RoomDto, StudentDto, StudentClassDto } from '../../types/types';
+import { formatTimeRange } from '../../utils/DateUtils';
+import {
+    dialogTitleSx,
+    titleTypographySx,
+    closeButtonSx,
+    rowGridSx,
+    confirmDeleteStackSx,
+} from '../../styles/slotDetails.styles';
 
 interface SlotDetailsProps {
     open: boolean;
     slot: Slot | null;
     onClose: () => void;
-    therapists: TherapistDto[];
-    rooms: RoomDto[];
+    therapist?: TherapistDto | null;
+    room?: RoomDto | null;
+    studentClass?: StudentClassDto | null;
+    students?: StudentDto[];
     onEdit?: (slot: Slot) => void;
     onDelete?: (slot: Slot, applyToAll: boolean) => void;
 }
@@ -25,9 +38,11 @@ interface SlotDetailsProps {
 const SlotDetails: React.FC<SlotDetailsProps> = ({
     open,
     slot,
+    therapist,
+    room,
+    studentClass,
+    students,
     onClose,
-    therapists,
-    rooms,
     onEdit,
     onDelete,
 }) => {
@@ -36,42 +51,53 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
 
     if (!slot) return null;
 
-    const therapist = slot.therapistId ? therapists.find((t) => t.id === slot.therapistId) : null;
-    const room = slot.roomId ? rooms.find((r) => r.id === slot.roomId) : null;
+    const renderRow = (label: string, value: React.ReactNode) => (
+        <Grid container spacing={1} sx={rowGridSx}>
+            <Grid>
+                <Typography variant="body1" fontWeight={600} color="text.secondary">
+                    {label}
+                </Typography>
+            </Grid>
+            <Grid>
+                <Typography variant="body1">{value}</Typography>
+            </Grid>
+        </Grid>
+    );
+
+    const studentNames = students?.length
+        ? students.map((s) => `${s.firstName} ${s.lastName}`).join(', ')
+        : '-';
 
     return (
-        <Dialog open={open} onClose={onClose}>
-            <DialogTitle>Szczegóły zajęć</DialogTitle>
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+            <DialogTitle sx={dialogTitleSx}>
+                <Typography variant="h6" sx={titleTypographySx}>
+                    Szczegóły zajęć
+                </Typography>
+                <IconButton aria-label="close" onClick={onClose} sx={closeButtonSx}>
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+
             <DialogContent dividers>
-                <Stack spacing={1}>
-                    <Typography>
-                        <strong>Nazwa zajęć:</strong> {slot.title || '-'}
-                    </Typography>
-                    <Typography>
-                        <strong>Terapeuta:</strong>{' '}
-                        {therapist ? `${therapist.firstName} ${therapist.lastName}` : '-'}
-                    </Typography>
-                    <Typography>
-                        <strong>Sala:</strong> {room?.name || '-'}
-                    </Typography>
-                    <Typography>
-                        <strong>Start:</strong> {slot.start}
-                    </Typography>
-                    <Typography>
-                        <strong>Koniec:</strong> {slot.end}
-                    </Typography>
-                    <Typography>
-                        <strong>Uczniowie:</strong> {slot.studentIds?.join(', ') || '-'}
-                    </Typography>
-                    <Typography>
-                        <strong>Klasa:</strong> {slot.studentClassId || '-'}
-                    </Typography>
+                <Stack spacing={2}>
+                    {renderRow('Nazwa zajęć:', slot.title || '-')}
+                    {renderRow(
+                        'Terapeuta:',
+                        therapist ? `${therapist.firstName} ${therapist.lastName}` : '-'
+                    )}
+                    {renderRow('Sala:', room?.name || '-')}
+                    {renderRow('Czas:', formatTimeRange(slot.start, slot.end))}
+                    {renderRow('Klasa:', studentClass?.name || '-')}
+                    {renderRow('Uczniowie:', studentNames)}
                 </Stack>
 
                 {confirmDelete && (
-                    <Stack spacing={1} sx={{ mt: 2 }}>
-                        <Typography color="error">Czy na pewno chcesz usunąć ten slot?</Typography>
-                        {slot.studentIds && slot.studentIds.length > 1 && (
+                    <Stack sx={confirmDeleteStackSx}>
+                        <Typography color="error" fontWeight={600}>
+                            Czy na pewno chcesz usunąć ten slot?
+                        </Typography>
+                        {students && students.length > 1 && (
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -85,22 +111,36 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
                     </Stack>
                 )}
             </DialogContent>
+
             <DialogActions>
-                {onEdit && <Button onClick={() => onEdit(slot)}>Edytuj</Button>}
+                {onEdit && (
+                    <Button variant="outlined" color="primary" onClick={() => onEdit(slot)}>
+                        Edytuj
+                    </Button>
+                )}
                 {onDelete &&
                     (!confirmDelete ? (
-                        <Button color="error" onClick={() => setConfirmDelete(true)}>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={() => setConfirmDelete(true)}
+                        >
                             Usuń
                         </Button>
                     ) : (
                         <>
-                            <Button color="error" onClick={() => onDelete(slot, applyToAll)}>
-                                Potwierdź
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => onDelete(slot, applyToAll)}
+                            >
+                                Usuń
                             </Button>
-                            <Button onClick={() => setConfirmDelete(false)}>Anuluj</Button>
+                            <Button variant="outlined" onClick={() => setConfirmDelete(false)}>
+                                Anuluj
+                            </Button>
                         </>
                     ))}
-                <Button onClick={onClose}>Zamknij</Button>
             </DialogActions>
         </Dialog>
     );

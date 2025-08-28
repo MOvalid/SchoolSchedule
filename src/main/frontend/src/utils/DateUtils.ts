@@ -1,40 +1,35 @@
 /**
- * Tworzy lokalną datę (bez przesunięcia do UTC) na podstawie dnia tygodnia i godziny "HH:mm"
+ * Konwertuje datę i godzinę w formacie string na ISO string w strefie UTC.
+ *
+ * @param dateStr - data w formacie "YYYY-MM-DD"
+ * @param timeStr - godzina w formacie "HH:mm"
+ * @returns ISO string w strefie UTC, np. "2025-08-25T06:00:00.000Z"
  */
-export const convertToDatetimeLocal = (dayOfWeek: number, time: string): string => {
-    const now = new Date();
-    const currentWeekMonday = new Date(now.setDate(now.getDate() - ((now.getDay() + 6) % 7))); // Poniedziałek
-
-    const targetDate = new Date(currentWeekMonday);
-    targetDate.setDate(currentWeekMonday.getDate() + (dayOfWeek - 1));
-
-    const [hours, minutes] = time.split(':').map(Number);
-    targetDate.setHours(hours, minutes, 0, 0);
-
-    // Lokalny czas w formacie ISO, np. "2025-08-06T09:00:00"
-    return targetDate.toISOString().slice(0, 19); // bez Z
+export const toISOTime = (dateStr: string, timeStr: string) => {
+    return new Date(`${dateStr}T${timeStr}:00Z`).toISOString();
 };
 
 /**
- * Dodaje lokalne przesunięcie czasowe do godziny "HH:mm"
- * @param time - godzina w formacie "HH:mm"
- * @returns string - przesunięta godzina w formacie "HH:mm"
+ * Formatuje ISO string daty na samą godzinę i minuty w formacie "HH:mm".
+ *
+ * @param isoString - data w formacie ISO, np. "2025-08-25T06:00:00.000Z"
+ * @returns godzina w formacie "HH:mm", np. "06:00", lub "-" jeśli brak wartości
  */
-export const addTimezoneOffsetToTime = (time: string): string => {
-    const [hours, minutes] = time.split(':').map(Number);
-
-    const date = new Date(Date.UTC(2000, 0, 1, hours, minutes));
-    console.log(date);
-
-    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-    console.log(localDate);
-
-    const localHours = localDate.getHours().toString().padStart(2, '0');
-    const localMinutes = localDate.getMinutes().toString().padStart(2, '0');
-
-    return `${localHours}:${localMinutes}`;
+export const formatHour = (isoString?: string) => {
+    if (!isoString) return '-';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-export const toISOTime = (dateStr: string, timeStr: string) => {
-    return new Date(`${dateStr}T${timeStr}:00Z`).toISOString();
+/**
+ * Formatuje przedział czasowy z dat ISO na czytelny format godzin "HH:mm - HH:mm".
+ *
+ * @param start - ISO string daty rozpoczęcia, np. "2025-08-25T06:00:00.000Z"
+ * @param end - ISO string daty zakończenia, np. "2025-08-25T08:00:00.000Z"
+ * @returns przedział godzin w formacie "HH:mm - HH:mm", np. "06:00 - 08:00"; jeśli brak wartości, używa "-"
+ */
+export const formatTimeRange = (start?: string, end?: string) => {
+    const formattedStart = start ? formatHour(start) : '-';
+    const formattedEnd = end ? formatHour(end) : '-';
+    return `${formattedStart} - ${formattedEnd}`;
 };

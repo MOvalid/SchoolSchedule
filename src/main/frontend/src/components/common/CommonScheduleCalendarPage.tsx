@@ -99,6 +99,10 @@ export const ScheduleCalendarPage: React.FC = () => {
             studentClassId: event.studentClassId,
             applyToAll: true,
         });
+
+        if (editMode) {
+            setTimeout(() => document.dispatchEvent(new CustomEvent('openSlotDialog')), 0);
+        }
     };
 
     const handleDateClick = (arg: DateClickArg) => {
@@ -174,6 +178,7 @@ export const ScheduleCalendarPage: React.FC = () => {
                 therapists={therapists}
                 rooms={rooms}
                 students={students}
+                studentClasses={studentClasses}
                 entityType={entityType}
                 studentId={entityId}
                 editSlot={handleSlotSave}

@@ -7,6 +7,9 @@ import plLocale from '@fullcalendar/core/locales/pl';
 import { RoomDto, Slot, StudentClassDto, StudentDto, TherapistDto } from '../../types/types';
 import { EventClickArg } from '@fullcalendar/core';
 import { EntityTypes } from '../../types/enums/entityTypes';
+import { useTheme } from '@mui/material/styles';
+import { getCalendarStyles } from '../../styles/calendar.styles';
+import { Box } from '@mui/material';
 
 interface Props {
     events: Slot[];
@@ -73,6 +76,7 @@ const ScheduleCalendar: React.FC<Props> = ({
     entityType,
 }) => {
     const calendarRef = useRef<FullCalendar>(null);
+    const theme = useTheme();
 
     const therapistsMap = useMemo(
         () => Object.fromEntries(therapists.map((t) => [t.id, t])),
@@ -89,36 +93,38 @@ const ScheduleCalendar: React.FC<Props> = ({
     const roomsMap = useMemo(() => Object.fromEntries(rooms.map((r) => [r.id, r])), [rooms]);
 
     return (
-        <FullCalendar
-            ref={calendarRef}
-            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            dateClick={editMode ? onDateClick : undefined}
-            eventClick={onEventClick}
-            allDaySlot={false}
-            slotMinTime="05:00:00"
-            slotMaxTime="18:00:00"
-            locale={plLocale}
-            firstDay={1}
-            timeZone="UTC"
-            nowIndicator={false}
-            headerToolbar={false}
-            hiddenDays={[0, 6]}
-            dayHeaderFormat={{ weekday: 'long' }}
-            slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-            height="auto"
-            events={events.map((e) => ({
-                ...e,
-                title: formatSlotTitle(
-                    e,
-                    entityType,
-                    therapistsMap,
-                    studentsMap,
-                    classesMap,
-                    roomsMap
-                ),
-            }))}
-        />
+        <Box sx={getCalendarStyles(theme)}>
+            <FullCalendar
+                ref={calendarRef}
+                plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+                initialView="timeGridWeek"
+                dateClick={editMode ? onDateClick : undefined}
+                eventClick={onEventClick}
+                allDaySlot={false}
+                slotMinTime="05:00:00"
+                slotMaxTime="18:00:00"
+                locale={plLocale}
+                firstDay={1}
+                timeZone="UTC"
+                nowIndicator={false}
+                headerToolbar={false}
+                hiddenDays={[0, 6]}
+                dayHeaderFormat={{ weekday: 'long' }}
+                slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+                height="auto"
+                events={events.map((e) => ({
+                    ...e,
+                    title: formatSlotTitle(
+                        e,
+                        entityType,
+                        therapistsMap,
+                        studentsMap,
+                        classesMap,
+                        roomsMap
+                    ),
+                }))}
+            />
+        </Box>
     );
 };
 

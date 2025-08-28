@@ -5,19 +5,23 @@ import {
     DialogContent,
     DialogActions,
     TextField,
-    MenuItem,
     Button,
     Typography,
     FormControlLabel,
     Checkbox,
-    FormControl,
-    InputLabel,
-    Select,
-    ListItemText,
+    Stack,
 } from '@mui/material';
-import { Slot, SlotFormValues, TherapistDto, RoomDto, StudentDto } from '../../types/types';
+import {
+    Slot,
+    SlotFormValues,
+    TherapistDto,
+    RoomDto,
+    StudentDto,
+    StudentClassDto,
+} from '../../types/types';
 import { toISOTime } from '../../utils/DateUtils';
 import { EntityTypes } from '../../types/enums/entityTypes';
+import SearchSelect from '../common/SearchSelect';
 
 interface Props {
     open: boolean;
@@ -29,6 +33,7 @@ interface Props {
     therapists: TherapistDto[];
     rooms: RoomDto[];
     students: StudentDto[];
+    classes: StudentClassDto[];
     entityType: EntityTypes;
     errorMessage?: string | null;
     saving?: boolean;
@@ -44,6 +49,7 @@ const SlotDialog: React.FC<Props> = ({
     therapists,
     rooms,
     students,
+    classes,
     entityType,
     errorMessage,
     saving,
@@ -55,121 +61,128 @@ const SlotDialog: React.FC<Props> = ({
             [field]: toISOTime(datePart, value),
         });
     };
-    console.log(entityType);
+
+    const showApplyToAllCheckbox = !!(
+        slot?.slotId &&
+        students &&
+        students.length > 1 &&
+        entityType === EntityTypes.Student
+    );
 
     if (!slot) return null;
 
     return (
-        <Dialog open={open} onClose={onClose}>
-            <DialogTitle>Edytuj zajęcia</DialogTitle>
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+            <DialogTitle>{slot.slotId ? 'Edycja zajęć' : 'Dodawanie zajęć'}</DialogTitle>
             <DialogContent>
-                <TextField
-                    label="Nazwa zajęć"
-                    fullWidth
-                    margin="dense"
-                    value={formValues.title}
-                    onChange={(e) => setFormValues({ ...formValues, title: e.target.value })}
-                />
-                <TextField
-                    label="Terapeuta"
-                    select
-                    fullWidth
-                    margin="dense"
-                    value={formValues.therapistId}
-                    onChange={(e) =>
-                        setFormValues({ ...formValues, therapistId: Number(e.target.value) })
-                    }
-                >
-                    {therapists.map((t) => (
-                        <MenuItem key={t.id} value={t.id}>
-                            {t.firstName} {t.lastName}
-                        </MenuItem>
-                    ))}
-                </TextField>
-                <TextField
-                    label="Sala"
-                    select
-                    fullWidth
-                    margin="dense"
-                    value={formValues.roomId}
-                    onChange={(e) =>
-                        setFormValues({ ...formValues, roomId: Number(e.target.value) })
-                    }
-                >
-                    {rooms.map((r) => (
-                        <MenuItem key={r.id} value={r.id}>
-                            {r.name}
-                        </MenuItem>
-                    ))}
-                </TextField>
-                <TextField
-                    label="Godzina rozpoczęcia"
-                    type="time"
-                    fullWidth
-                    margin="dense"
-                    value={formValues.start.slice(11, 16)}
-                    onChange={(e) => handleTimeChange('start', e.target.value)}
-                />
-                <TextField
-                    label="Godzina zakończenia"
-                    type="time"
-                    fullWidth
-                    margin="dense"
-                    value={formValues.end.slice(11, 16)}
-                    onChange={(e) => handleTimeChange('end', e.target.value)}
-                />
+                <Stack spacing={2} sx={{ mt: 1 }}>
+                    <TextField
+                        label="Nazwa zajęć"
+                        fullWidth
+                        margin="dense"
+                        value={formValues.title}
+                        onChange={(e) => setFormValues({ ...formValues, title: e.target.value })}
+                    />
 
-                {entityType === EntityTypes.Therapist && (
-                    <FormControl fullWidth margin="dense" sx={{ mt: 2 }}>
-                        <InputLabel id="students-label">Uczniowie</InputLabel>
-                        <Select
-                            labelId="students-label"
+                    <SearchSelect
+                        label="Terapeuta"
+                        items={therapists.map((t) => ({
+                            id: t.id!,
+                            label: `${t.firstName} ${t.lastName}`,
+                        }))}
+                        value={formValues.therapistId ?? null}
+                        onChange={(id) =>
+                            setFormValues({
+                                ...formValues,
+                                therapistId: (id as number | null) ?? undefined,
+                            })
+                        }
+                        multiple={false}
+                    />
+
+                    <SearchSelect
+                        label="Sala"
+                        items={rooms.map((r) => ({ id: r.id!, label: r.name }))}
+                        value={formValues.roomId ?? null}
+                        onChange={(id) =>
+                            setFormValues({
+                                ...formValues,
+                                roomId: (id as number | null) ?? undefined,
+                            })
+                        }
+                        multiple={false}
+                    />
+
+                    <TextField
+                        label="Godzina rozpoczęcia"
+                        type="time"
+                        fullWidth
+                        margin="dense"
+                        value={formValues.start.slice(11, 16)}
+                        onChange={(e) => handleTimeChange('start', e.target.value)}
+                    />
+                    <TextField
+                        label="Godzina zakończenia"
+                        type="time"
+                        fullWidth
+                        margin="dense"
+                        value={formValues.end.slice(11, 16)}
+                        onChange={(e) => handleTimeChange('end', e.target.value)}
+                    />
+
+                    {entityType === EntityTypes.Therapist && (
+                        <SearchSelect
+                            label="Uczniowie"
+                            items={students.map((s) => ({
+                                id: s.id!,
+                                label: `${s.firstName} ${s.lastName}`,
+                            }))}
+                            value={formValues.studentIds ?? []}
+                            onChange={(ids) =>
+                                setFormValues({ ...formValues, studentIds: ids as number[] })
+                            }
                             multiple
-                            value={formValues.studentIds}
-                            onChange={(e) =>
+                        />
+                    )}
+
+                    {entityType !== EntityTypes.Student && (
+                        <SearchSelect
+                            label="Klasa"
+                            items={classes.map((c) => ({ id: c.id!, label: c.name }))}
+                            value={formValues.studentClassId ?? null}
+                            onChange={(id) =>
                                 setFormValues({
                                     ...formValues,
-                                    studentIds: e.target.value as number[],
+                                    studentClassId: (id as number | null) ?? undefined,
                                 })
                             }
-                            renderValue={(selected) =>
-                                students
-                                    .filter((s) => selected.includes(s.id))
-                                    .map((s) => `${s.firstName} ${s.lastName}`)
-                                    .join(', ')
-                            }
-                        >
-                            {students.map((student) => (
-                                <MenuItem key={student.id} value={student.id}>
-                                    <Checkbox
-                                        checked={formValues.studentIds.includes(student.id)}
-                                    />
-                                    <ListItemText
-                                        primary={`${student.firstName} ${student.lastName}`}
-                                    />
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                )}
-
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            checked={formValues.applyToAll}
-                            onChange={(e) =>
-                                setFormValues({ ...formValues, applyToAll: e.target.checked })
-                            }
+                            multiple={false}
                         />
-                    }
-                    label="Zastosuj zmiany dla wszystkich uczniów"
-                />
+                    )}
 
-                {errorMessage && (
-                    <Typography color="error" variant="body2" sx={{ mt: 1 }}>
-                        {errorMessage}
-                    </Typography>
-                )}
+                    {showApplyToAllCheckbox && (
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={formValues.applyToAll}
+                                    onChange={(e) =>
+                                        setFormValues({
+                                            ...formValues,
+                                            applyToAll: e.target.checked,
+                                        })
+                                    }
+                                />
+                            }
+                            label="Zastosuj zmiany dla wszystkich uczniów"
+                        />
+                    )}
+
+                    {errorMessage && (
+                        <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                            {errorMessage}
+                        </Typography>
+                    )}
+                </Stack>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Anuluj</Button>

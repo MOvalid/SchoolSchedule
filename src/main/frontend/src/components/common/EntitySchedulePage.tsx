@@ -102,7 +102,8 @@ const EntitySchedulePage: React.FC<Props> = ({ entityType }) => {
                 }
                 items={options}
                 value={selectedId}
-                onChange={handleSelect}
+                onChange={(val) => handleSelect(val as number | null)}
+                multiple={false}
             />
         </Box>
     );

@@ -11,8 +11,17 @@ const AppRoutes = () => (
         <AppBar position="static">
             <Toolbar>
                 <Box sx={{ display: 'flex', gap: 2, flexGrow: 1, alignItems: 'center' }}>
-                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                        School Schedule App
+                    <Typography
+                        variant="h6"
+                        sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+                    >
+                        <Box
+                            component="img"
+                            src="/mspdion.png"
+                            alt="mspdionLogo"
+                            sx={{ width: 32, height: 32 }}
+                        />
+                        MSPDiON - SchedulON
                     </Typography>
                     <Button color="inherit" component={Link} to="/students">
                         Uczniowie

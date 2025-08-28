@@ -1,7 +1,14 @@
 import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
 import SlotDetails from './SlotDetails';
 import SlotDialog from './SlotDialog';
-import { Slot, SlotFormValues, TherapistDto, RoomDto, StudentDto } from '../../types/types';
+import {
+    Slot,
+    SlotFormValues,
+    TherapistDto,
+    RoomDto,
+    StudentDto,
+    StudentClassDto,
+} from '../../types/types';
 import { EntityTypes } from '../../types/enums/entityTypes';
 
 interface SlotDetailsManagerProps {
@@ -10,6 +17,7 @@ interface SlotDetailsManagerProps {
     therapists: TherapistDto[];
     rooms: RoomDto[];
     students: StudentDto[];
+    studentClasses: StudentClassDto[];
     entityType: EntityTypes;
     studentId: number;
     editSlot: (slot: Slot, formValues: SlotFormValues) => void;
@@ -24,6 +32,7 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
     therapists,
     rooms,
     students,
+    studentClasses,
     entityType,
     studentId,
     editSlot,
@@ -69,14 +78,34 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
         setSelectedSlot(null);
     };
 
+    const selectedTherapist = selectedSlot?.therapistId
+        ? therapists.find((t) => t.id === selectedSlot.therapistId) || null
+        : null;
+
+    const selectedRoom = selectedSlot?.roomId
+        ? rooms.find((r) => r.id === selectedSlot.roomId) || null
+        : null;
+
+    const selectedClass = selectedSlot?.studentClassId
+        ? studentClasses.find((c) => c.id === selectedSlot.studentClassId) || null
+        : null;
+
+    const selectedStudents = selectedSlot?.studentIds
+        ? (selectedSlot.studentIds
+              .map((id) => students.find((s) => s.id === id))
+              .filter(Boolean) as StudentDto[])
+        : [];
+
     return (
         <>
             {selectedSlot && !editOpen && (
                 <SlotDetails
                     open={true}
                     slot={selectedSlot}
-                    therapists={therapists}
-                    rooms={rooms}
+                    therapist={selectedTherapist}
+                    room={selectedRoom}
+                    studentClass={selectedClass}
+                    students={selectedStudents}
                     onClose={handleClose}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
@@ -94,6 +123,7 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
                     therapists={therapists}
                     rooms={rooms}
                     students={students}
+                    classes={studentClasses}
                     entityType={entityType}
                     errorMessage={null}
                     saving={false}
