@@ -7,22 +7,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class StudentClassMapper {
 
-    public StudentClassDto toDto(StudentClass entity) {
-        if (entity == null) return null;
-        return StudentClassDto.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .department(entity.getDepartment())
-                .build();
-    }
+  public StudentClassDto toDto(StudentClass entity) {
+    if (entity == null) return null;
+    return StudentClassDto.builder()
+        .id(entity.getId())
+        .name(entity.getName())
+        .department(entity.getDepartment())
+        .build();
+  }
 
-    public StudentClass toEntity(StudentClassDto dto) {
-        if (dto == null) return null;
-        return StudentClass.builder()
-                .id(dto.getId())
-                .name(dto.getName())
-                .department(dto.getDepartment())
-                .build();
-    }
+  public StudentClass toEntity(StudentClassDto dto) {
+    if (dto == null) return null;
+    return StudentClass.builder()
+        .id(dto.getId())
+        .name(dto.getName())
+        .department(dto.getDepartment())
+        .build();
+  }
 }
-

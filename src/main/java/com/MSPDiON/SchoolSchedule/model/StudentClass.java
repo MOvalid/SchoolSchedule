@@ -13,13 +13,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StudentClass {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String name;
+  private String name;
 
-    @Enumerated(EnumType.STRING)
-    private Department department;
+  @Enumerated(EnumType.STRING)
+  private Department department;
 }
-

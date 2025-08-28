@@ -1,12 +1,11 @@
 package com.MSPDiON.SchoolSchedule.model;
 
 import jakarta.persistence.*;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalTime;
 
 @Entity
 @Data
@@ -15,17 +14,15 @@ import java.time.LocalTime;
 @Builder
 public class Student {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String firstName;
-    private String lastName;
+  private String firstName;
+  private String lastName;
 
-    private LocalTime arrivalTime;
-    private LocalTime departureTime;
+  private LocalTime arrivalTime;
+  private LocalTime departureTime;
 
-    @ManyToOne
-    private StudentClass studentClass;
+  @ManyToOne private StudentClass studentClass;
 }
-
