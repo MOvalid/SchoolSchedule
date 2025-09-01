@@ -31,25 +31,27 @@ export const formatSlotTitle = (
 ) => {
     let title = slot.title || '';
 
-    if (userType === EntityTypes.Student) {
-        if (slot.therapistId) {
-            const therapist = therapistsMap[slot.therapistId];
-            if (therapist) {
-                title += ` (${therapist.firstName} ${therapist.lastName})`;
+    const appendName = (name?: string) => {
+        if (name) title += ` (${name})`;
+    };
+
+    switch (userType) {
+        case EntityTypes.Student:
+            if (slot.therapistId) {
+                const therapist = therapistsMap[slot.therapistId];
+                appendName(therapist ? `${therapist.firstName} ${therapist.lastName}` : undefined);
             }
-        }
-    } else if (userType === EntityTypes.Therapist) {
-        if (slot.studentClassId) {
-            const studentClass = classesMap[slot.studentClassId];
-            if (studentClass) {
-                title += ` (${studentClass.name})`;
+            break;
+
+        case EntityTypes.Therapist:
+            if (slot.studentClassId) {
+                const studentClass = classesMap[slot.studentClassId];
+                appendName(studentClass?.name);
+            } else if (slot.studentIds?.length === 1) {
+                const student = studentsMap[slot.studentIds[0]];
+                appendName(student ? `${student.firstName} ${student.lastName}` : undefined);
             }
-        } else if (slot.studentIds && slot.studentIds.length === 1) {
-            const student = studentsMap[slot.studentIds[0]];
-            if (student) {
-                title += ` (${student.firstName} ${student.lastName})`;
-            }
-        }
+            break;
     }
 
     return title;

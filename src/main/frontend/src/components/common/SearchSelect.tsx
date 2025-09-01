@@ -17,6 +17,7 @@ const SearchSelect: React.FC<SearchSelectProps> = ({
     multiple = false,
 }) => {
     const getOptionLabel = (option: { id: number; label: string }) => option.label;
+
     const isOptionEqualToValue = (
         option: { id: number; label: string },
         val: { id: number; label: string }
@@ -26,19 +27,24 @@ const SearchSelect: React.FC<SearchSelectProps> = ({
         ? items.filter((item) => (value as number[] | null)?.includes(item.id) ?? false)
         : items.find((item) => item.id === (value as number | null)) || null;
 
+    const handleChange = (
+        _: React.SyntheticEvent,
+        newValue: { id: number; label: string } | { id: number; label: string }[] | null
+    ) => {
+        if (multiple) {
+            onChange((newValue as { id: number }[]).map((v) => v.id));
+        } else {
+            onChange((newValue as { id: number } | null)?.id ?? null);
+        }
+    };
+
     return (
         <Autocomplete
             multiple={multiple}
             options={items}
             getOptionLabel={getOptionLabel}
             value={selectedOption}
-            onChange={(_, newValue) => {
-                if (multiple) {
-                    onChange((newValue as { id: number }[]).map((v) => v.id));
-                } else {
-                    onChange((newValue as { id: number } | null)?.id ?? null);
-                }
-            }}
+            onChange={handleChange}
             renderInput={(params) => <TextField {...params} label={label} fullWidth />}
             isOptionEqualToValue={isOptionEqualToValue}
         />

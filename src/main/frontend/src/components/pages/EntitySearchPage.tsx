@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchSelect from '../common/SearchSelect';
@@ -21,6 +21,19 @@ const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
     const [options, setOptions] = useState<EntityOption[]>([]);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const navigate = useNavigate();
+
+    const labels = useMemo(() => {
+        switch (entityType) {
+            case EntityTypes.Student:
+                return { title: 'Wyszukaj ucznia', label: 'Uczeń' };
+            case EntityTypes.Therapist:
+                return { title: 'Wyszukaj terapeutę', label: 'Terapeuta' };
+            case EntityTypes.Class:
+                return { title: 'Wyszukaj klasę', label: 'Klasa' };
+            default:
+                return { title: '', label: '' };
+        }
+    }, [entityType]);
 
     useEffect(() => {
         const fetchEntities = async () => {
@@ -85,21 +98,10 @@ const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
     return (
         <Box sx={{ p: 4 }}>
             <Typography variant="h5" gutterBottom>
-                Wyszukaj{' '}
-                {entityType === EntityTypes.Student
-                    ? 'ucznia'
-                    : entityType === EntityTypes.Therapist
-                      ? 'terapeutę'
-                      : 'klasę'}
+                {labels.title}
             </Typography>
             <SearchSelect
-                label={
-                    entityType === EntityTypes.Student
-                        ? 'Uczeń'
-                        : entityType === EntityTypes.Therapist
-                          ? 'Terapeuta'
-                          : 'Klasa'
-                }
+                label={labels.label}
                 items={options}
                 value={selectedId}
                 onChange={(val) => handleSelect(val as number | null)}

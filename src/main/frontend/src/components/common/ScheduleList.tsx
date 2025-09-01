@@ -15,6 +15,10 @@ interface ScheduleListProps {
     slots: ScheduleSlotDto[];
 }
 
+interface SlotTextProps {
+    slot: ScheduleSlotDto;
+}
+
 const styles: Record<string, SxProps<Theme>> = {
     paper: {
         mb: 2,
@@ -24,6 +28,18 @@ const styles: Record<string, SxProps<Theme>> = {
 
 const ScheduleList: React.FC<ScheduleListProps> = ({ slots }) => {
     if (slots.length === 0) return null;
+
+    const formatSlotPrimary = ({ slot }: SlotTextProps) => {
+        return `Dzień: ${slot.dayOfWeek}, ${slot.startTime}–${slot.endTime}`;
+    };
+
+    const formatSlotSecondary = ({ slot }: SlotTextProps) => {
+        const roomName = slot.room?.name ?? '-';
+        const therapistName = slot.therapist
+            ? `${slot.therapist.firstName} ${slot.therapist.lastName}`
+            : '-';
+        return `Sala: ${roomName}, Terapeuta: ${therapistName}`;
+    };
 
     return (
         <Box>
@@ -35,8 +51,8 @@ const ScheduleList: React.FC<ScheduleListProps> = ({ slots }) => {
                     <Paper key={slot.id} sx={styles.paper}>
                         <ListItem>
                             <ListItemText
-                                primary={`Dzień: ${slot.dayOfWeek}, ${slot.startTime}–${slot.endTime}`}
-                                secondary={`Sala: ${slot.room?.name ?? '-'}, Terapeuta: ${slot.therapist?.firstName ?? ''} ${slot.therapist?.lastName ?? ''}`}
+                                primary={formatSlotPrimary({ slot })}
+                                secondary={formatSlotSecondary({ slot })}
                             />
                         </ListItem>
                     </Paper>

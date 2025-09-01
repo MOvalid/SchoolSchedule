@@ -71,7 +71,7 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle sx={dialogTitleSx}>
-                <Typography variant="h6" sx={titleTypographySx}>
+                <Typography variant="h6" component="div" sx={titleTypographySx}>
                     Szczegóły zajęć
                 </Typography>
                 <IconButton aria-label="close" onClick={onClose} sx={closeButtonSx}>
@@ -114,20 +114,12 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
 
             <DialogActions>
                 {onEdit && (
-                    <Button variant="outlined" color="primary" onClick={() => onEdit(slot)}>
+                    <Button variant="outlined" onClick={() => onEdit(slot)}>
                         Edytuj
                     </Button>
                 )}
                 {onDelete &&
-                    (!confirmDelete ? (
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={() => setConfirmDelete(true)}
-                        >
-                            Usuń
-                        </Button>
-                    ) : (
+                    (confirmDelete ? (
                         <>
                             <Button
                                 variant="contained"
@@ -140,6 +132,14 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
                                 Anuluj
                             </Button>
                         </>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={() => setConfirmDelete(true)}
+                        >
+                            Usuń
+                        </Button>
                     ))}
             </DialogActions>
         </Dialog>

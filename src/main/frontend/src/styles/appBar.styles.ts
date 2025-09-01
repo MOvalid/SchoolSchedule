@@ -15,7 +15,3 @@ export const mainContentBox: SxProps<Theme> = {
     mt: 4,
     px: 2,
 };
-
-export const emptyPageTypography: SxProps<Theme> = {
-    mt: 8,
-};
