@@ -12,6 +12,8 @@ import {
     Box,
     FormHelperText,
     Typography,
+    SxProps,
+    Theme,
 } from '@mui/material';
 import { Department, DepartmentLabels } from '../../types/enums/department';
 import { TherapistRole, TherapistRoleLabels } from '../../types/enums/therapistRole';
@@ -27,6 +29,17 @@ interface Props {
     initialData?: TherapistDto;
     onSuccess?: () => void;
 }
+
+const styles: Record<string, SxProps<Theme>> = {
+    buttonBox: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        mt: 2,
+    },
+    button: {
+        width: '40%',
+    },
+};
 
 const TherapistForm: React.FC<Props> = ({ mode = 'create', initialData, onSuccess }) => {
     const snackbar = useSnackbar();
@@ -63,7 +76,6 @@ const TherapistForm: React.FC<Props> = ({ mode = 'create', initialData, onSucces
         value: Department[] | TherapistRole
     ) => {
         setFormValues((prev) => ({ ...prev, [name]: value }));
-
         if (
             (name === 'departments' && Array.isArray(value) && value.length > 0) ||
             (name === 'role' && value)
@@ -192,8 +204,8 @@ const TherapistForm: React.FC<Props> = ({ mode = 'create', initialData, onSucces
                 {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
             </FormControl>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                <Button variant="contained" onClick={handleSubmit} sx={{ width: '40%' }}>
+            <Box sx={styles.buttonBox}>
+                <Button variant="contained" onClick={handleSubmit} sx={styles.button}>
                     {mode === 'create' ? 'Zapisz' : 'Aktualizuj'}
                 </Button>
             </Box>

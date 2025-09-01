@@ -8,6 +8,14 @@ import { getAllTherapists } from '../../services/TherapistService';
 import { getAllClasses } from '../../services/StudentClassService';
 import { CreateEntityPageWrapper } from '../wrappers/CreateEntityPageWrapper';
 import { EditEntityPageWrapper } from '../wrappers/EditEntityPageWrapper';
+import {
+    pageContainer,
+    paperContainer,
+    modeButtonsBox,
+    entityTypeButtonsBox,
+    searchSelectBox,
+    wrapperBox,
+} from '../../styles/manageEntityPage.styles';
 
 interface EntityOption {
     id: number;
@@ -66,7 +74,6 @@ const ManageEntityPage: React.FC = () => {
         fetchEntities();
     }, [entityType, mode]);
 
-    // Pobranie wybranej encji w trybie edycji
     const handleSelectEntity = async (id: number | null) => {
         if (id === null) {
             setSelectedEntity(undefined);
@@ -97,14 +104,13 @@ const ManageEntityPage: React.FC = () => {
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
-            <Paper sx={{ p: 3, width: '100%', maxWidth: 600, mb: 3 }}>
+        <Box sx={pageContainer}>
+            <Paper sx={paperContainer}>
                 <Typography variant="h6" gutterBottom>
                     Zarządzanie encjami
                 </Typography>
 
-                {/* Wybór trybu */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Box sx={modeButtonsBox}>
                     <Button
                         variant={mode === 'create' ? 'contained' : 'outlined'}
                         onClick={() => {
@@ -124,8 +130,7 @@ const ManageEntityPage: React.FC = () => {
                     </Button>
                 </Box>
 
-                {/* Wybór typu encji */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Box sx={entityTypeButtonsBox}>
                     <Button
                         variant={entityType === EntityTypes.Student ? 'contained' : 'outlined'}
                         onClick={() => setEntityType(EntityTypes.Student)}
@@ -149,9 +154,8 @@ const ManageEntityPage: React.FC = () => {
                     </Button>
                 </Box>
 
-                {/* W trybie edycji wybór konkretnej encji */}
                 {mode === 'edit' && entityType && (
-                    <Box sx={{ mb: 2 }}>
+                    <Box sx={searchSelectBox}>
                         <SearchSelect
                             label={
                                 entityType === EntityTypes.Student
@@ -169,9 +173,8 @@ const ManageEntityPage: React.FC = () => {
                 )}
             </Paper>
 
-            <Box sx={{ width: '100%', maxWidth: 600 }}>
+            <Box sx={wrapperBox}>
                 {mode === 'create' && <CreateEntityPageWrapper entityType={entityType} />}
-
                 {mode === 'edit' && entityType && selectedEntity && (
                     <EditEntityPageWrapper entityType={entityType} entityData={selectedEntity} />
                 )}

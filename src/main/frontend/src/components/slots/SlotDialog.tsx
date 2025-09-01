@@ -10,6 +10,8 @@ import {
     FormControlLabel,
     Checkbox,
     Stack,
+    SxProps,
+    Theme,
 } from '@mui/material';
 import {
     Slot,
@@ -39,6 +41,12 @@ interface Props {
     saving?: boolean;
 }
 
+const styles: Record<string, SxProps<Theme>> = {
+    stack: { mt: 1, spacing: 2 },
+    errorText: { color: 'error.main', mt: 1 },
+    button: { width: '120px' },
+};
+
 const SlotDialog: React.FC<Props> = ({
     open,
     slot,
@@ -54,62 +62,61 @@ const SlotDialog: React.FC<Props> = ({
     errorMessage,
     saving,
 }) => {
-    const handleTimeChange = (field: 'start' | 'end', value: string) => {
-        const datePart = formValues[field].slice(0, 10);
-        setFormValues({
-            ...formValues,
-            [field]: toISOTime(datePart, value),
-        });
+    if (!slot) return null;
+
+    const updateField = <K extends keyof SlotFormValues>(field: K, value: SlotFormValues[K]) => {
+        setFormValues({ ...formValues, [field]: value });
     };
 
-    const showApplyToAllCheckbox = !!(
-        slot?.slotId &&
-        students &&
-        students.length > 1 &&
-        entityType === EntityTypes.Student
-    );
+    const handleTimeChange = (field: 'start' | 'end', value: string) => {
+        const datePart = formValues[field].slice(0, 10);
+        updateField(field, toISOTime(datePart, value));
+    };
 
-    if (!slot) return null;
+    const getTimeFromISO = (iso: string) => iso.slice(11, 16);
+
+    const therapistItems = therapists.map((t) => ({
+        id: t.id!,
+        label: `${t.firstName} ${t.lastName}`,
+    }));
+    const studentItems = students.map((s) => ({
+        id: s.id!,
+        label: `${s.firstName} ${s.lastName}`,
+    }));
+    const roomItems = rooms.map((r) => ({ id: r.id!, label: r.name }));
+    const classItems = classes.map((c) => ({ id: c.id!, label: c.name }));
+
+    const showApplyToAllCheckbox =
+        !!slot.slotId && students.length > 1 && entityType === EntityTypes.Student;
+    const showStudentSelect = entityType === EntityTypes.Therapist;
+    const showClassSelect = entityType !== EntityTypes.Student;
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>{slot.slotId ? 'Edycja zajęć' : 'Dodawanie zajęć'}</DialogTitle>
             <DialogContent>
-                <Stack spacing={2} sx={{ mt: 1 }}>
+                <Stack sx={styles.stack}>
                     <TextField
                         label="Nazwa zajęć"
                         fullWidth
                         margin="dense"
                         value={formValues.title}
-                        onChange={(e) => setFormValues({ ...formValues, title: e.target.value })}
+                        onChange={(e) => updateField('title', e.target.value)}
                     />
 
                     <SearchSelect
                         label="Terapeuta"
-                        items={therapists.map((t) => ({
-                            id: t.id!,
-                            label: `${t.firstName} ${t.lastName}`,
-                        }))}
+                        items={therapistItems}
                         value={formValues.therapistId ?? null}
-                        onChange={(id) =>
-                            setFormValues({
-                                ...formValues,
-                                therapistId: (id as number | null) ?? undefined,
-                            })
-                        }
+                        onChange={(id) => updateField('therapistId', (id as number) ?? undefined)}
                         multiple={false}
                     />
 
                     <SearchSelect
                         label="Sala"
-                        items={rooms.map((r) => ({ id: r.id!, label: r.name }))}
+                        items={roomItems}
                         value={formValues.roomId ?? null}
-                        onChange={(id) =>
-                            setFormValues({
-                                ...formValues,
-                                roomId: (id as number | null) ?? undefined,
-                            })
-                        }
+                        onChange={(id) => updateField('roomId', (id as number) ?? undefined)}
                         multiple={false}
                     />
 
@@ -118,7 +125,7 @@ const SlotDialog: React.FC<Props> = ({
                         type="time"
                         fullWidth
                         margin="dense"
-                        value={formValues.start.slice(11, 16)}
+                        value={getTimeFromISO(formValues.start)}
                         onChange={(e) => handleTimeChange('start', e.target.value)}
                     />
                     <TextField
@@ -126,35 +133,27 @@ const SlotDialog: React.FC<Props> = ({
                         type="time"
                         fullWidth
                         margin="dense"
-                        value={formValues.end.slice(11, 16)}
+                        value={getTimeFromISO(formValues.end)}
                         onChange={(e) => handleTimeChange('end', e.target.value)}
                     />
 
-                    {entityType === EntityTypes.Therapist && (
+                    {showStudentSelect && (
                         <SearchSelect
                             label="Uczniowie"
-                            items={students.map((s) => ({
-                                id: s.id!,
-                                label: `${s.firstName} ${s.lastName}`,
-                            }))}
+                            items={studentItems}
                             value={formValues.studentIds ?? []}
-                            onChange={(ids) =>
-                                setFormValues({ ...formValues, studentIds: ids as number[] })
-                            }
+                            onChange={(ids) => updateField('studentIds', ids as number[])}
                             multiple
                         />
                     )}
 
-                    {entityType !== EntityTypes.Student && (
+                    {showClassSelect && (
                         <SearchSelect
                             label="Klasa"
-                            items={classes.map((c) => ({ id: c.id!, label: c.name }))}
+                            items={classItems}
                             value={formValues.studentClassId ?? null}
                             onChange={(id) =>
-                                setFormValues({
-                                    ...formValues,
-                                    studentClassId: (id as number | null) ?? undefined,
-                                })
+                                updateField('studentClassId', (id as number) ?? undefined)
                             }
                             multiple={false}
                         />
@@ -165,12 +164,7 @@ const SlotDialog: React.FC<Props> = ({
                             control={
                                 <Checkbox
                                     checked={formValues.applyToAll}
-                                    onChange={(e) =>
-                                        setFormValues({
-                                            ...formValues,
-                                            applyToAll: e.target.checked,
-                                        })
-                                    }
+                                    onChange={(e) => updateField('applyToAll', e.target.checked)}
                                 />
                             }
                             label="Zastosuj zmiany dla wszystkich uczniów"
@@ -178,7 +172,7 @@ const SlotDialog: React.FC<Props> = ({
                     )}
 
                     {errorMessage && (
-                        <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                        <Typography sx={styles.errorText} variant="body2">
                             {errorMessage}
                         </Typography>
                     )}
@@ -186,7 +180,7 @@ const SlotDialog: React.FC<Props> = ({
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Anuluj</Button>
-                <Button onClick={onSave} variant="contained" disabled={saving}>
+                <Button onClick={onSave} variant="contained" disabled={saving} sx={styles.button}>
                     Zapisz
                 </Button>
             </DialogActions>

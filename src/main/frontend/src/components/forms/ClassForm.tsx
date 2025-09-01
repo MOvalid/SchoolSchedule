@@ -9,6 +9,8 @@ import {
     Box,
     FormHelperText,
     Typography,
+    SxProps,
+    Theme,
 } from '@mui/material';
 import { Department, DepartmentLabels } from '../../types/enums/department';
 import { useCreateClass, useUpdateClass } from '../../hooks/useStudentClasses';
@@ -22,6 +24,20 @@ interface Props {
     initialData?: StudentClassDto;
     onSuccess?: () => void;
 }
+
+const styles: Record<string, SxProps<Theme>> = {
+    container: {
+        mt: 2,
+    },
+    buttonBox: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        mt: 2,
+    },
+    button: {
+        width: '40%',
+    },
+};
 
 const ClassForm: React.FC<Props> = ({ mode = 'create', initialData, onSuccess }) => {
     const snackbar = useSnackbar();
@@ -136,8 +152,8 @@ const ClassForm: React.FC<Props> = ({ mode = 'create', initialData, onSuccess })
                 {errors.department && <FormHelperText>{errors.department}</FormHelperText>}
             </FormControl>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                <Button variant="contained" onClick={handleSubmit} sx={{ width: '40%' }}>
+            <Box sx={styles.buttonBox}>
+                <Button variant="contained" onClick={handleSubmit} sx={styles.button}>
                     {mode === 'create' ? 'Zapisz' : 'Aktualizuj'}
                 </Button>
             </Box>

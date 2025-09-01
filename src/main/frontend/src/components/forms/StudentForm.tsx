@@ -8,6 +8,8 @@ import {
     Select,
     TextField,
     Typography,
+    SxProps,
+    Theme,
 } from '@mui/material';
 import { useCreateStudent, useUpdateStudent } from '../../hooks/useStudents';
 import { useStudentClasses } from '../../hooks/useStudentClasses';
@@ -19,6 +21,17 @@ interface Props {
     initialData?: StudentDto;
     onSuccess?: () => void;
 }
+
+const styles: Record<string, SxProps<Theme>> = {
+    buttonBox: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        mt: 2,
+    },
+    button: {
+        width: '40%',
+    },
+};
 
 export const StudentForm: React.FC<Props> = ({ mode = 'create', initialData, onSuccess }) => {
     const snackbar = useSnackbar();
@@ -168,8 +181,8 @@ export const StudentForm: React.FC<Props> = ({ mode = 'create', initialData, onS
                 )}
             </FormControl>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                <Button variant="contained" onClick={handleSubmit} sx={{ width: '40%' }}>
+            <Box sx={styles.buttonBox}>
+                <Button variant="contained" onClick={handleSubmit} sx={styles.button}>
                     {mode === 'create' ? 'Zapisz' : 'Aktualizuj'}
                 </Button>
             </Box>
