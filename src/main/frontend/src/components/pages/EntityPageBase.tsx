@@ -29,11 +29,7 @@ const EntityPageBase: React.FC<Props> = ({ mode, entityType, entityData }) => {
     };
 
     return (
-        <Box>
-            {renderForm() || (
-                <Typography variant="body2">Brak formularza dla wybranego typu encji</Typography>
-            )}
-        </Box>
+        <Box>{renderForm() || <Typography variant="body2">Wybierz rodzaj obiektu</Typography>}</Box>
     );
 };
 

@@ -10,7 +10,7 @@ export const toISOTime = (dateStr: string, timeStr: string) => {
 };
 
 /**
- * Formatuje ISO string daty na samą godzinę i minuty w formacie "HH:mm".
+ * Formatuje ISO string daty na samą godzinę i minuty w formacie "HH:mm" bez zmiany strefy czasowej.
  *
  * @param isoString - data w formacie ISO, np. "2025-08-25T06:00:00.000Z"
  * @returns godzina w formacie "HH:mm", np. "06:00", lub "-" jeśli brak wartości
@@ -18,7 +18,9 @@ export const toISOTime = (dateStr: string, timeStr: string) => {
 export const formatHour = (isoString?: string) => {
     if (!isoString) return '-';
     const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
 };
 
 /**

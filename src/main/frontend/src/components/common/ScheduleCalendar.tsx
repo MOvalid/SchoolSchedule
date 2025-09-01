@@ -4,7 +4,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import plLocale from '@fullcalendar/core/locales/pl';
-import { RoomDto, Slot, StudentClassDto, StudentDto, TherapistDto } from '../../types/types';
+import { Slot, StudentClassDto, StudentDto, TherapistDto } from '../../types/types';
 import { EventClickArg } from '@fullcalendar/core';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import { useTheme } from '@mui/material/styles';
@@ -16,7 +16,6 @@ interface Props {
     therapists: TherapistDto[];
     students: StudentDto[];
     studentClasses: StudentClassDto[];
-    rooms: RoomDto[];
     editMode: boolean;
     onEventClick: (arg: EventClickArg) => void;
     onDateClick: (arg: DateClickArg) => void;
@@ -28,8 +27,7 @@ export const formatSlotTitle = (
     userType: EntityTypes,
     therapistsMap: Record<number, { firstName: string; lastName: string }>,
     studentsMap: Record<number, { firstName: string; lastName: string }>,
-    classesMap: Record<number, { name: string }>,
-    roomsMap: Record<number, { name: string }>
+    classesMap: Record<number, { name: string }>
 ) => {
     let title = slot.title || '';
 
@@ -54,13 +52,6 @@ export const formatSlotTitle = (
         }
     }
 
-    if (slot.roomId) {
-        const room = roomsMap[slot.roomId];
-        if (room) {
-            title += ` - ${room.name}`;
-        }
-    }
-
     return title;
 };
 
@@ -69,7 +60,6 @@ const ScheduleCalendar: React.FC<Props> = ({
     therapists,
     studentClasses,
     students,
-    rooms,
     editMode,
     onEventClick,
     onDateClick,
@@ -90,7 +80,6 @@ const ScheduleCalendar: React.FC<Props> = ({
         () => Object.fromEntries(studentClasses.map((c) => [c.id, c])),
         [studentClasses]
     );
-    const roomsMap = useMemo(() => Object.fromEntries(rooms.map((r) => [r.id, r])), [rooms]);
 
     return (
         <Box sx={getCalendarStyles(theme)}>
@@ -114,14 +103,7 @@ const ScheduleCalendar: React.FC<Props> = ({
                 height="auto"
                 events={events.map((e) => ({
                     ...e,
-                    title: formatSlotTitle(
-                        e,
-                        entityType,
-                        therapistsMap,
-                        studentsMap,
-                        classesMap,
-                        roomsMap
-                    ),
+                    title: formatSlotTitle(e, entityType, therapistsMap, studentsMap, classesMap),
                 }))}
             />
         </Box>

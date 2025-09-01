@@ -15,11 +15,6 @@ public class ScheduleController {
 
   private final ScheduleService scheduleService;
 
-  //    @PostMapping
-  //    public ResponseEntity<ScheduleSlotDto> create(@RequestBody ScheduleSlotDto dto) {
-  //        return ResponseEntity.ok(scheduleService.createScheduleSlot(dto));
-  //    }
-
   @GetMapping
   public List<ScheduleSlotDto> getAll() {
     return scheduleService.getAllScheduleSlots();

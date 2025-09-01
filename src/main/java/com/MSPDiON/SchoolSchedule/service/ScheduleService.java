@@ -60,10 +60,48 @@ public class ScheduleService {
     errorMessages.addAll(checkRoomAvailability(slot));
     errorMessages.addAll(checkStudentConflicts(slot));
     errorMessages.addAll(checkClassStudentConflicts(slot));
+    errorMessages.addAll(checkStudentDailyPresence(slot));
 
     if (!errorMessages.isEmpty()) {
-      throw new ConflictException(String.join("\n", errorMessages));
+      throw new ConflictException(String.join("\n\n", errorMessages));
     }
+  }
+
+  private List<String> checkStudentDailyPresence(ScheduleSlot slot) {
+    List<String> messages = new ArrayList<>();
+    if (slot.getStudents() == null && slot.getStudentClass() == null) return messages;
+
+    List<Student> studentsToCheck = new ArrayList<>();
+
+    if (slot.getStudentClass() != null) {
+      studentsToCheck.addAll(
+          studentRepository.findByStudentClassId(slot.getStudentClass().getId()));
+    }
+
+    if (slot.getStudents() != null) {
+      studentsToCheck.addAll(slot.getStudents());
+    }
+
+    for (Student student : studentsToCheck) {
+      if (student.getArrivalTime() != null && student.getDepartureTime() != null) {
+
+        if (slot.getStartTime().isBefore(student.getArrivalTime())
+            || slot.getEndTime().isAfter(student.getDepartureTime())) {
+          messages.add(
+              "Godziny zajęć kolidują z codzienną obecnością ucznia "
+                  + student.getFirstName()
+                  + " "
+                  + student.getLastName()
+                  + " ("
+                  + student.getArrivalTime()
+                  + " - "
+                  + student.getDepartureTime()
+                  + ")");
+        }
+      }
+    }
+
+    return messages;
   }
 
   private void ensureTherapistHasClassOrStudents(ScheduleSlot slot) {
@@ -121,7 +159,7 @@ public class ScheduleService {
     if (slot.getStudentClass() == null) return messages;
 
     StudentClass studentClass = slot.getStudentClass();
-    List<Student> classStudents = studentRepository.findByStudentClass_Id(studentClass.getId());
+    List<Student> classStudents = studentRepository.findByStudentClassId(studentClass.getId());
 
     for (Student student : classStudents) {
       List<ScheduleSlot> conflicts =

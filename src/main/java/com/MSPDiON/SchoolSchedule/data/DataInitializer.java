@@ -40,8 +40,12 @@ public class DataInitializer {
 
       StudentClass class1A = new StudentClass();
       class1A.setName("1A");
+      class1A.setDepartment(Department.ZRW);
+
       StudentClass class2B = new StudentClass();
       class2B.setName("2B");
+      class2B.setDepartment(Department.ZRW);
+
       classRepository.saveAll(List.of(class1A, class2B));
 
       Student student1 =

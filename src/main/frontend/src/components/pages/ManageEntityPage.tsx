@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Typography, Paper } from '@mui/material';
+import { Box, Button, Paper, Typography } from '@mui/material';
 import { EntityTypes } from '../../types/enums/entityTypes';
-import { StudentDto, TherapistDto, StudentClassDto } from '../../types/types';
+import { StudentClassDto, StudentDto, TherapistDto } from '../../types/types';
 import SearchSelect from '../common/SearchSelect';
 import { getAllStudents } from '../../services/StudentService';
 import { getAllTherapists } from '../../services/TherapistService';
@@ -16,7 +16,7 @@ interface EntityOption {
 
 const ManageEntityPage: React.FC = () => {
     const [mode, setMode] = useState<'create' | 'edit'>('create');
-    const [entityType, setEntityType] = useState<EntityTypes | undefined>(undefined);
+    const [entityType, setEntityType] = useState<EntityTypes>(EntityTypes.Student);
     const [selectedEntity, setSelectedEntity] = useState<
         StudentDto | TherapistDto | StudentClassDto | undefined
     >(undefined);

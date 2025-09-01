@@ -164,7 +164,6 @@ export const ScheduleCalendarPage: React.FC = () => {
                 events={events}
                 therapists={therapists}
                 students={students}
-                rooms={rooms}
                 studentClasses={studentClasses}
                 editMode={editMode}
                 onEventClick={handleEventClick}

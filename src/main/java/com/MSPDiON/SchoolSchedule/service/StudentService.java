@@ -33,7 +33,7 @@ public class StudentService {
   }
 
   public List<StudentDto> getAllByClassId(Long classId) {
-    return studentRepository.findByStudentClass_Id(classId).stream()
+    return studentRepository.findByStudentClassId(classId).stream()
         .map(studentMapper::toDto)
         .toList();
   }
