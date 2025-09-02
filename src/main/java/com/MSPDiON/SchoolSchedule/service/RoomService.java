@@ -2,6 +2,7 @@ package com.MSPDiON.SchoolSchedule.service;
 
 import com.MSPDiON.SchoolSchedule.dto.RoomDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.RoomMapper;
+import com.MSPDiON.SchoolSchedule.exception.RoomNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.Room;
 import com.MSPDiON.SchoolSchedule.repository.RoomRepository;
 import java.util.List;
@@ -20,10 +21,7 @@ public class RoomService {
   }
 
   public RoomDto getById(Long id) {
-    Room room =
-        roomRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("Room not found with id: " + id));
+    Room room = roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
     return roomMapper.toDto(room);
   }
 
@@ -34,10 +32,7 @@ public class RoomService {
   }
 
   public RoomDto update(Long id, RoomDto dto) {
-    Room existing =
-        roomRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("Room not found with id: " + id));
+    Room existing = roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
 
     existing.setName(dto.getName());
 
@@ -47,7 +42,7 @@ public class RoomService {
 
   public void delete(Long id) {
     if (!roomRepository.existsById(id)) {
-      throw new RuntimeException("Room not found with id: " + id);
+      throw new RoomNotFoundException(id);
     }
     roomRepository.deleteById(id);
   }

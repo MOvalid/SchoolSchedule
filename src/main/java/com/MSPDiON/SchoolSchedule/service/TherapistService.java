@@ -3,6 +3,7 @@ package com.MSPDiON.SchoolSchedule.service;
 import com.MSPDiON.SchoolSchedule.dto.CreateTherapistDto;
 import com.MSPDiON.SchoolSchedule.dto.TherapistDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.TherapistMapper;
+import com.MSPDiON.SchoolSchedule.exception.TherapistNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.Therapist;
 import com.MSPDiON.SchoolSchedule.repository.TherapistRepository;
 import java.util.List;
@@ -24,7 +25,7 @@ public class TherapistService {
     return therapistRepository
         .findById(id)
         .map(therapistMapper::toDto)
-        .orElseThrow(() -> new RuntimeException("Therapist not found"));
+        .orElseThrow(() -> new TherapistNotFoundException(id));
   }
 
   public TherapistDto create(CreateTherapistDto dto) {
@@ -34,9 +35,7 @@ public class TherapistService {
 
   public TherapistDto update(Long id, TherapistDto dto) {
     Therapist existing =
-        therapistRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("Therapist not found"));
+        therapistRepository.findById(id).orElseThrow(() -> new TherapistNotFoundException(id));
     existing.setFirstName(dto.getFirstName());
     existing.setLastName(dto.getLastName());
     existing.setRole(dto.getRole());

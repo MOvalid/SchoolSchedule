@@ -1,5 +1,8 @@
 package com.MSPDiON.SchoolSchedule.service;
 
+import static com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder.buildPresenceConflictMessage;
+import static com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder.buildStudentClassConflictMessage;
+
 import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.ScheduleMapper;
@@ -12,6 +15,7 @@ import com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -84,25 +88,23 @@ public class ScheduleService {
     }
 
     for (Student student : studentsToCheck) {
-      if (student.getArrivalTime() != null && student.getDepartureTime() != null) {
-
-        if (slot.getStartTime().isBefore(student.getArrivalTime())
-            || slot.getEndTime().isAfter(student.getDepartureTime())) {
-          messages.add(
-              "Godziny zajęć kolidują z codzienną obecnością ucznia "
-                  + student.getFirstName()
-                  + " "
-                  + student.getLastName()
-                  + " ("
-                  + student.getArrivalTime()
-                  + " - "
-                  + student.getDepartureTime()
-                  + ")");
-        }
-      }
+      checkPresenceForStudent(slot, student).ifPresent(messages::add);
     }
 
     return messages;
+  }
+
+  private Optional<String> checkPresenceForStudent(ScheduleSlot slot, Student student) {
+    if (student.getArrivalTime() == null || student.getDepartureTime() == null) {
+      return Optional.empty();
+    }
+
+    if (slot.getStartTime().isBefore(student.getArrivalTime())
+        || slot.getEndTime().isAfter(student.getDepartureTime())) {
+      return Optional.of(buildPresenceConflictMessage(student));
+    }
+
+    return Optional.empty();
   }
 
   private void ensureTherapistHasClassOrStudents(ScheduleSlot slot) {
@@ -163,24 +165,24 @@ public class ScheduleService {
     List<Student> classStudents = studentRepository.findByStudentClassId(studentClass.getId());
 
     for (Student student : classStudents) {
-      List<ScheduleSlot> conflicts =
-          scheduleSlotRepository.findConflictsByStudent(
-              student.getId(), slot.getStartTime(), slot.getEndTime());
-
-      conflicts.removeIf(c -> c.getId().equals(slot.getId()));
-
-      if (!conflicts.isEmpty()) {
-        messages.add(
-            "Uczeń "
-                + student.getFirstName()
-                + " "
-                + student.getLastName()
-                + " z klasy "
-                + studentClass.getName()
-                + " ma konflikt w grafiku.");
-      }
+      checkConflictsForStudent(slot, student, studentClass).ifPresent(messages::add);
     }
+
     return messages;
+  }
+
+  private Optional<String> checkConflictsForStudent(
+      ScheduleSlot slot, Student student, StudentClass studentClass) {
+    List<ScheduleSlot> conflicts =
+        scheduleSlotRepository.findConflictsByStudent(
+            student.getId(), slot.getStartTime(), slot.getEndTime());
+
+    conflicts.removeIf(c -> c.getId().equals(slot.getId()));
+
+    if (!conflicts.isEmpty()) {
+      return Optional.of(buildStudentClassConflictMessage(student, studentClass));
+    }
+    return Optional.empty();
   }
 
   public List<ScheduleSlotDto> getAllScheduleSlots() {

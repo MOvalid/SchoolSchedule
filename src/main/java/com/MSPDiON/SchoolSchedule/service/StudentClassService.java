@@ -2,6 +2,7 @@ package com.MSPDiON.SchoolSchedule.service;
 
 import com.MSPDiON.SchoolSchedule.dto.StudentClassDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.StudentClassMapper;
+import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.repository.StudentClassRepository;
 import java.util.List;
@@ -23,7 +24,7 @@ public class StudentClassService {
     StudentClass sc =
         studentClassRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("Student class not found with id: " + id));
+            .orElseThrow(() -> new StudentClassNotFoundException(id));
     return studentClassMapper.toDto(sc);
   }
 
@@ -37,7 +38,7 @@ public class StudentClassService {
     StudentClass existing =
         studentClassRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("Student class not found with id: " + id));
+            .orElseThrow(() -> new StudentClassNotFoundException(id));
 
     existing.setName(dto.getName());
     existing.setDepartment(dto.getDepartment());
@@ -48,7 +49,7 @@ public class StudentClassService {
 
   public void delete(Long id) {
     if (!studentClassRepository.existsById(id)) {
-      throw new RuntimeException("Student class not found with id: " + id);
+      throw new StudentClassNotFoundException(id);
     }
     studentClassRepository.deleteById(id);
   }

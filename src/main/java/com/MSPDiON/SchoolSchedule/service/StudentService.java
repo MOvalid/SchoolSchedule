@@ -69,9 +69,7 @@ public class StudentService {
 
   public StudentDto update(Long id, StudentDto dto) {
     Student existing =
-        studentRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
+        studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
 
     updateBasicInfo(existing, dto);
     updateStudentClass(existing, dto);
@@ -82,7 +80,7 @@ public class StudentService {
 
   public void delete(Long id) {
     if (!studentRepository.existsById(id)) {
-      throw new RuntimeException("Student not found with id: " + id);
+      throw new StudentNotFoundException(id);
     }
     studentRepository.deleteById(id);
   }
@@ -99,7 +97,7 @@ public class StudentService {
       StudentClass studentClass =
           studentClassRepository
               .findById(dto.getStudentClassId())
-              .orElseThrow(() -> new RuntimeException("Student class not found"));
+              .orElseThrow(() -> new StudentClassNotFoundException(dto.getStudentClassId()));
       student.setStudentClass(studentClass);
     } else {
       student.setStudentClass(null); // Można usunąć przypisanie do klasy
