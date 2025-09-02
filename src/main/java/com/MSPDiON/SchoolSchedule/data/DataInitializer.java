@@ -41,10 +41,12 @@ public class DataInitializer {
       StudentClass class1A = new StudentClass();
       class1A.setName("1A");
       class1A.setDepartment(Department.ZRW);
+      class1A.setStudents(List.of());
 
       StudentClass class2B = new StudentClass();
       class2B.setName("2B");
       class2B.setDepartment(Department.ZRW);
+      class2B.setStudents(List.of());
 
       classRepository.saveAll(List.of(class1A, class2B));
 
@@ -103,8 +105,8 @@ public class DataInitializer {
           ScheduleSlot.builder()
               .dayOfWeek(java.time.DayOfWeek.MONDAY)
               .title("Testowe zajęcia")
-              .startTime(LocalTime.of(6, 0))
-              .endTime(LocalTime.of(7, 0))
+              .startTime(LocalTime.of(9, 0))
+              .endTime(LocalTime.of(10, 0))
               .therapist(therapist1)
               .room(room1)
               .isIndividual(true)

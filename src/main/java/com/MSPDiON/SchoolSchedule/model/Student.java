@@ -24,5 +24,7 @@ public class Student {
   private LocalTime arrivalTime;
   private LocalTime departureTime;
 
-  @ManyToOne private StudentClass studentClass;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "student_class_id")
+  private StudentClass studentClass;
 }

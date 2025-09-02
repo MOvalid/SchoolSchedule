@@ -53,11 +53,23 @@ public class StudentMapper {
   public Student toEntity(CreateStudentDto dto) {
     if (dto == null) return null;
 
+    StudentClass studentClass = null;
+    if (dto.getStudentClassId() != null) {
+      studentClass =
+          studentClassRepository
+              .findById(dto.getStudentClassId())
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "StudentClass not found: " + dto.getStudentClassId()));
+    }
+
     return Student.builder()
         .firstName(dto.getFirstName())
         .lastName(dto.getLastName())
         .arrivalTime(dto.getArrivalTime())
         .departureTime(dto.getDepartureTime())
+        .studentClass(studentClass)
         .build();
   }
 }

@@ -293,14 +293,12 @@ public class ScheduleService {
     List<ScheduleSlot> slots = scheduleSlotRepository.findByStudentId(studentId);
 
     for (ScheduleSlot slot : slots) {
-      Set<Student> students = slot.getStudents();
-      if (students.size() == 1) {
+      if (slot.getStudents().size() == 1) {
         scheduleSlotRepository.delete(slot);
       } else if (slot.getStudentClass() != null) {
         continue;
       } else {
-        students.removeIf(s -> s.getId().equals(studentId));
-        slot.setStudents(students);
+        slot.getStudents().removeIf(s -> s.getId().equals(studentId));
         scheduleSlotRepository.save(slot);
       }
     }
