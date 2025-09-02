@@ -84,7 +84,7 @@ const ScheduleCalendar: React.FC<Props> = ({
     );
 
     return (
-        <Box sx={getCalendarStyles(theme)}>
+        <Box id="calendar-container" sx={getCalendarStyles(theme)}>
             <FullCalendar
                 ref={calendarRef}
                 plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
