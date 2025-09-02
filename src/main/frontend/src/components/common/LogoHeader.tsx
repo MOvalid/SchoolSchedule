@@ -28,7 +28,7 @@ const LogoHeader: React.FC = () => {
 
     return (
         <Box onClick={handleClick} sx={styles.container}>
-            <Box component="img" src="/mspdion.png" alt="mspdionLogo" sx={styles.logo} />
+            <Box component="img" src="/favicon.ico" alt="mspdionLogo" sx={styles.logo} />
             <Typography variant="h6" sx={styles.title}>
                 MSPDiON - SchedulON
             </Typography>

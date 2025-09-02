@@ -22,7 +22,8 @@ export interface StudentDto {
 export interface CreateTherapistDto {
     firstName: string;
     lastName: string;
-    department?: Department;
+    role: TherapistRole;
+    departments: Department[];
 }
 
 export interface TherapistDto {
