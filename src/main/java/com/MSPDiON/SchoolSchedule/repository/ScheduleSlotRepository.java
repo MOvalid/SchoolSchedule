@@ -13,9 +13,10 @@ public interface ScheduleSlotRepository extends JpaRepository<ScheduleSlot, Long
 
   List<ScheduleSlot> findByTherapistId(Long therapistId);
 
-  List<ScheduleSlot> findByStudents_Id(Long studentId);
+  @Query("SELECT s FROM ScheduleSlot s JOIN s.students st WHERE st.id = :studentId")
+  List<ScheduleSlot> findByStudentId(@Param("studentId") Long studentId);
 
-  List<ScheduleSlot> findByStudentClass_Id(Long classId);
+  List<ScheduleSlot> findByStudentClassId(Long classId);
 
   @Query(
       """

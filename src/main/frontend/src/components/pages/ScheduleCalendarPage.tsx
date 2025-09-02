@@ -11,6 +11,7 @@ import {
 } from '../../types/types';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import {
+    useClearSchedule,
     useCreateScheduleSlot,
     useDeleteScheduleSlotForAll,
     useDeleteScheduleSlotForEntity,
@@ -31,6 +32,7 @@ import ActionButtons from '../common/ActionButtons';
 import ScheduleCalendar from '../common/ScheduleCalendar';
 import SlotDetailsManager from '../slots/SlotDetailsManager';
 import { getAllClasses } from '../../services/StudentClassService';
+import ConfirmDialog from '../common/ConfirmDialog';
 
 interface LocationState {
     entityType: EntityTypes;
@@ -59,12 +61,14 @@ export const ScheduleCalendarPage: React.FC = () => {
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [students, setStudents] = useState<StudentDto[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClassDto[]>([]);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, entityId);
     const createSlot = useCreateScheduleSlot(entityType, entityId);
     const updateSlotForAll = useUpdateScheduleSlotForAll(entityType, entityId);
     const updateSlotForEntity = useUpdateScheduleSlotForEntity(entityType, entityId);
     const deleteSlotForAll = useDeleteScheduleSlotForAll(entityType, entityId);
+    const clearSchedule = useClearSchedule(entityType, entityId);
     const deleteSlotForEntity = useDeleteScheduleSlotForEntity(entityType, entityId);
 
     const handleSlotSave = (slot: Slot, values: SlotFormValues) => {
@@ -137,6 +141,26 @@ export const ScheduleCalendarPage: React.FC = () => {
         setTimeout(() => document.dispatchEvent(new CustomEvent('openSlotDialog')), 0);
     };
 
+    const handleClearSchedule = () => {
+        setConfirmOpen(true); // otwiera dialog
+    };
+
+    const handleConfirmClear = () => {
+        clearSchedule.mutate(
+            { id: entityId, entityType },
+            {
+                onSuccess: () => {
+                    setEvents([]);
+                    setConfirmOpen(false);
+                },
+                onError: () => {
+                    alert('Błąd podczas czyszczenia grafiku.');
+                    setConfirmOpen(false);
+                },
+            }
+        );
+    };
+
     useEffect(() => {
         getAllRooms().then((res) => setRooms(res.data));
         getAllTherapists().then((res) => setTherapists(res.data));
@@ -158,7 +182,21 @@ export const ScheduleCalendarPage: React.FC = () => {
                 Grafik: {name}
             </Typography>
 
-            <ActionButtons editMode={editMode} setEditMode={setEditMode} />
+            <ActionButtons
+                editMode={editMode}
+                setEditMode={setEditMode}
+                onClearSchedule={handleClearSchedule}
+            />
+
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Wyczyść grafik"
+                description="Czy na pewno chcesz wyczyścić cały grafik? Tej operacji nie można cofnąć."
+                confirmText="Wyczyść"
+                confirmColor="error"
+                onConfirm={handleConfirmClear}
+                onCancel={() => setConfirmOpen(false)}
+            />
 
             <ScheduleCalendar
                 events={events}

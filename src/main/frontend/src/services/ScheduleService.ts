@@ -29,5 +29,8 @@ export const updateStudentScheduleSlot = (studentId: number, id: number, data: S
 
 export const deleteScheduleSlot = (id: number) => api.delete(`/schedules/${id}`);
 
+export const deleteSchedule = (entityId: number, entityType: EntityTypes) =>
+    api.delete(`/schedules/${entityType}/${entityId}`);
+
 export const deleteStudentScheduleSlot = (studentId: number, id: number) =>
     api.delete<ScheduleSlotDto>(`/schedules/${id}/student/${studentId}`);

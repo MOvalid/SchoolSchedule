@@ -1,6 +1,7 @@
 import { useMutation, UseMutationOptions, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     createScheduleSlot,
+    deleteSchedule,
     deleteScheduleSlot,
     deleteStudentScheduleSlot,
     getAllScheduleSlots,
@@ -175,6 +176,17 @@ export const useDeleteScheduleSlotForAll = (entityType: EntityTypes, entityId: n
         entityType,
         entityId,
     });
+
+export const useClearSchedule = (entityType: EntityTypes, entityId: number) =>
+    useMutationWithSnackbar(
+        ({ id, entityType }: { id: number; entityType: EntityTypes }) =>
+            deleteSchedule(id, entityType),
+        {
+            successMessage: 'Plan wyczyszczony pomyślnie',
+            entityType,
+            entityId,
+        }
+    );
 
 export const useDeleteScheduleSlotForStudent = (entityType: EntityTypes, entityId: number) =>
     useMutationWithSnackbar(

@@ -9,6 +9,7 @@ import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.repository.*;
 import com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -40,11 +41,11 @@ public class ScheduleService {
   }
 
   public List<ScheduleSlot> getScheduleForStudent(Long studentId) {
-    return scheduleSlotRepository.findByStudents_Id(studentId);
+    return scheduleSlotRepository.findByStudentId(studentId);
   }
 
   public List<ScheduleSlot> getScheduleForClass(Long classId) {
-    return scheduleSlotRepository.findByStudentClass_Id(classId);
+    return scheduleSlotRepository.findByStudentClassId(classId);
   }
 
   private void validateSlot(ScheduleSlot slot) {
@@ -195,13 +196,13 @@ public class ScheduleService {
   }
 
   public List<ScheduleSlotDto> getScheduleForStudentDto(Long studentId) {
-    return scheduleSlotRepository.findByStudents_Id(studentId).stream()
+    return scheduleSlotRepository.findByStudentId(studentId).stream()
         .map(scheduleMapper::toDto)
         .toList();
   }
 
   public List<ScheduleSlotDto> getScheduleForClassDto(Long classId) {
-    return scheduleSlotRepository.findByStudentClass_Id(classId).stream()
+    return scheduleSlotRepository.findByStudentClassId(classId).stream()
         .map(scheduleMapper::toDto)
         .toList();
   }
@@ -269,5 +270,49 @@ public class ScheduleService {
 
     if (slot.getStudents().isEmpty()) scheduleSlotRepository.delete(slot);
     else scheduleSlotRepository.save(slot);
+  }
+
+  @Transactional
+  public void clearSchedule(Long entityId, String entityType) {
+    switch (entityType.toLowerCase()) {
+      case "student":
+        clearStudentSlots(entityId);
+        break;
+      case "therapist":
+        clearTherapistSlots(entityId);
+        break;
+      case "class":
+        clearClassSlots(entityId);
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown entityType: " + entityType);
+    }
+  }
+
+  private void clearStudentSlots(Long studentId) {
+    List<ScheduleSlot> slots = scheduleSlotRepository.findByStudentId(studentId);
+
+    for (ScheduleSlot slot : slots) {
+      Set<Student> students = slot.getStudents();
+      if (students.size() == 1) {
+        scheduleSlotRepository.delete(slot);
+      } else if (slot.getStudentClass() != null) {
+        continue;
+      } else {
+        students.removeIf(s -> s.getId().equals(studentId));
+        slot.setStudents(students);
+        scheduleSlotRepository.save(slot);
+      }
+    }
+  }
+
+  private void clearTherapistSlots(Long therapistId) {
+    List<ScheduleSlot> slots = scheduleSlotRepository.findByTherapistId(therapistId);
+    scheduleSlotRepository.deleteAll(slots);
+  }
+
+  private void clearClassSlots(Long classId) {
+    List<ScheduleSlot> slots = scheduleSlotRepository.findByStudentClassId(classId);
+    scheduleSlotRepository.deleteAll(slots);
   }
 }

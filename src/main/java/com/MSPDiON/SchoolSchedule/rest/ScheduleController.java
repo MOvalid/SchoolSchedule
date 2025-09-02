@@ -84,8 +84,14 @@ public class ScheduleController {
       case "class" -> dto.setStudentClassId(entityId);
       default -> throw new IllegalArgumentException("Unknown entityType: " + entityType);
     }
-    System.out.println(dto);
     ScheduleSlotDto created = scheduleService.createScheduleSlot(dto);
     return ResponseEntity.ok(created);
+  }
+
+  @DeleteMapping("/{entityType}/{entityId}")
+  public ResponseEntity<Void> clearScheduleForEntity(
+      @PathVariable String entityType, @PathVariable Long entityId) {
+    scheduleService.clearSchedule(entityId, entityType);
+    return ResponseEntity.ok().build();
   }
 }
