@@ -95,7 +95,7 @@ const SlotDialog: React.FC<Props> = ({
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>{slot.slotId ? 'Edycja zajęć' : 'Dodawanie zajęć'}</DialogTitle>
             <DialogContent>
-                <Stack sx={styles.stack}>
+                <Stack spacing={2} sx={styles.stack}>
                     <TextField
                         label="Nazwa zajęć"
                         fullWidth

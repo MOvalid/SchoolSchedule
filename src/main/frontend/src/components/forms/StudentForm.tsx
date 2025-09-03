@@ -16,6 +16,7 @@ interface StudentFormProps {
 
 export const StudentForm: React.FC<StudentFormProps> = ({ mode, initialData, onSuccess }) => {
     const { data: classes = [], isLoading: isClassLoading } = useStudentClasses();
+
     const {
         formValues,
         errors,
@@ -35,9 +36,21 @@ export const StudentForm: React.FC<StudentFormProps> = ({ mode, initialData, onS
         initialData,
         validate: (values: StudentDto) => {
             const errors: Record<string, string> = {};
+
             if (!values.firstName.trim()) errors.firstName = 'Wymagane imię';
             if (!values.lastName.trim()) errors.lastName = 'Wymagane nazwisko';
             if (!values.studentClassId) errors.studentClassId = 'Wymagana klasa ucznia';
+
+            const arrival = values.arrivalTime?.trim() || '00:00';
+            const departure = values.departureTime?.trim() || '23:59';
+
+            if (arrival > departure) {
+                errors.arrivalTime =
+                    'Godzina przyjścia nie może być późniejsza niż godzina wyjścia';
+                errors.departureTime =
+                    'Godzina wyjścia nie może być wcześniejsza niż godzina przyjścia';
+            }
+
             return errors;
         },
         createMutationFn: useCreateStudent,
@@ -115,7 +128,13 @@ export const StudentForm: React.FC<StudentFormProps> = ({ mode, initialData, onS
                 type="time"
                 value={formValues.arrivalTime}
                 onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                    inputLabel: {
+                        shrink: true,
+                    },
+                }}
+                error={!!errors.arrivalTime}
+                helperText={errors.arrivalTime}
             />
 
             <TextField
@@ -126,7 +145,13 @@ export const StudentForm: React.FC<StudentFormProps> = ({ mode, initialData, onS
                 type="time"
                 value={formValues.departureTime}
                 onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                    inputLabel: {
+                        shrink: true,
+                    },
+                }}
+                error={!!errors.departureTime}
+                helperText={errors.departureTime}
             />
 
             <FormSubmitButton mode={mode} onClick={handleSubmit} />

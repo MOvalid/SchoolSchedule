@@ -3,12 +3,14 @@ package com.MSPDiON.SchoolSchedule.service;
 import com.MSPDiON.SchoolSchedule.dto.CreateStudentDto;
 import com.MSPDiON.SchoolSchedule.dto.StudentDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.StudentMapper;
+import com.MSPDiON.SchoolSchedule.exception.InvalidStudentTimeException;
 import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.repository.StudentClassRepository;
 import com.MSPDiON.SchoolSchedule.repository.StudentRepository;
+import java.time.LocalTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,8 @@ public class StudentService {
   }
 
   public StudentDto create(CreateStudentDto dto) {
+    validateTimes(dto.getArrivalTime(), dto.getDepartureTime());
+
     Student student = studentMapper.toEntity(dto);
 
     if (dto.getStudentClassId() != null) {
@@ -68,6 +72,8 @@ public class StudentService {
   }
 
   public StudentDto update(Long id, StudentDto dto) {
+    validateTimes(dto.getArrivalTime(), dto.getDepartureTime());
+
     Student existing =
         studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
 
@@ -100,7 +106,15 @@ public class StudentService {
               .orElseThrow(() -> new StudentClassNotFoundException(dto.getStudentClassId()));
       student.setStudentClass(studentClass);
     } else {
-      student.setStudentClass(null); // Można usunąć przypisanie do klasy
+      student.setStudentClass(null);
+    }
+  }
+
+  private void validateTimes(LocalTime arrival, LocalTime departure) {
+    if (arrival != null && departure != null) {
+      if (arrival.isAfter(departure)) {
+        throw new InvalidStudentTimeException();
+      }
     }
   }
 }

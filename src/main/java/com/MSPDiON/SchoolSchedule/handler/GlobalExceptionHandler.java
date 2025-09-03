@@ -1,6 +1,7 @@
 package com.MSPDiON.SchoolSchedule.handler;
 
 import com.MSPDiON.SchoolSchedule.exception.ConflictException;
+import com.MSPDiON.SchoolSchedule.exception.InvalidStudentTimeException;
 import com.MSPDiON.SchoolSchedule.exception.RoomNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentNotFoundException;
@@ -75,6 +76,14 @@ public class GlobalExceptionHandler {
     message = "IllegalArgumentException: " + message;
     ErrorResponse error =
         new ErrorResponse(400, message, LocalDateTime.now(), request.getRequestURI());
+    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(InvalidStudentTimeException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidStudentTimeException(
+      ResponseStatusException ex, HttpServletRequest request) {
+    ErrorResponse error =
+        new ErrorResponse(400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 }

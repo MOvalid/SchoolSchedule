@@ -14,6 +14,9 @@ export const getCalendarStyles = (theme: Theme) => ({
     '& .fc .fc-col-header-cell-cushion': {
         color: theme.palette.text.primary,
     },
+    '& .fc .fc-timegrid-axis': {
+        backgroundColor: theme.palette.background.default,
+    },
     '& .fc .fc-daygrid-day-number': {
         color: theme.palette.text.primary,
         fontWeight: 600,
