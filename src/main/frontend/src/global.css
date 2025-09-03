@@ -3,7 +3,8 @@
         visibility: hidden;
     }
 
-    #calendar-container, #calendar-container * {
+    #calendar-container,
+    #calendar-container * {
         visibility: visible;
     }
 

@@ -37,6 +37,7 @@ public class ScheduleSlot {
   private LocalTime endTime;
 
   @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
   private DayOfWeek dayOfWeek;
 
   @Column(nullable = false)
