@@ -23,10 +23,13 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const showSnackbar = (msg: string, t: SnackbarType = 'info') => {
         setMessage(msg);
         setType(t);
-        setOpen(true);
+        setTimeout(() => setOpen(true), 0);
     };
 
-    const handleClose = () => setOpen(false);
+    const handleClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') return;
+        setOpen(false);
+    };
 
     return (
         <SnackbarContext.Provider value={{ showSnackbar }}>

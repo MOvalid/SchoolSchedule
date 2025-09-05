@@ -12,10 +12,11 @@ import {
     pageContainer,
     paperContainer,
     modeButtonsBox,
-    entityTypeButtonsBox,
     searchSelectBox,
     wrapperBox,
 } from '../../styles/manageEntityPage.styles';
+import { useNavigate } from 'react-router-dom';
+import EntityTypeSelector from '../common/EntityTypeSelector';
 
 interface EntityOption {
     id: number;
@@ -29,6 +30,8 @@ const ManageEntityPage: React.FC = () => {
         StudentDto | TherapistDto | StudentClassDto | undefined
     >(undefined);
     const [options, setOptions] = useState<EntityOption[]>([]);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!entityType || mode !== 'edit') {
@@ -128,31 +131,17 @@ const ManageEntityPage: React.FC = () => {
                     >
                         Edytuj
                     </Button>
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => navigate('/import')}
+                        fullWidth
+                    >
+                        Importuj dane
+                    </Button>
                 </Box>
 
-                <Box sx={entityTypeButtonsBox}>
-                    <Button
-                        variant={entityType === EntityTypes.Student ? 'contained' : 'outlined'}
-                        onClick={() => setEntityType(EntityTypes.Student)}
-                        fullWidth
-                    >
-                        Uczeń
-                    </Button>
-                    <Button
-                        variant={entityType === EntityTypes.Therapist ? 'contained' : 'outlined'}
-                        onClick={() => setEntityType(EntityTypes.Therapist)}
-                        fullWidth
-                    >
-                        Terapeuta
-                    </Button>
-                    <Button
-                        variant={entityType === EntityTypes.Class ? 'contained' : 'outlined'}
-                        onClick={() => setEntityType(EntityTypes.Class)}
-                        fullWidth
-                    >
-                        Klasa
-                    </Button>
-                </Box>
+                <EntityTypeSelector selected={entityType} onChange={setEntityType} />
 
                 {mode === 'edit' && entityType && (
                     <Box sx={searchSelectBox}>
