@@ -71,14 +71,30 @@ export const ScheduleCalendarPage: React.FC = () => {
     const clearSchedule = useClearSchedule(entityType, entityId);
     const deleteSlotForEntity = useDeleteScheduleSlotForEntity(entityType, entityId);
 
-    const handleSlotSave = (slot: Slot, values: SlotFormValues) => {
+    const handleSlotSave = async (
+        slot: Slot,
+        values: SlotFormValues,
+        options?: { onSuccess?: () => void; onError?: (error: unknown) => void }
+    ) => {
         const dto = convertFormValuesToScheduleSlotDto(values);
 
         if (slot.slotId) {
-            if (values.applyToAll) updateSlotForAll.mutate({ id: slot.slotId, data: dto });
-            else updateSlotForEntity.mutate({ id: slot.slotId, entityId, data: dto });
+            if (values.applyToAll) {
+                updateSlotForAll.mutate(
+                    { id: slot.slotId, data: dto },
+                    { onSuccess: options?.onSuccess, onError: options?.onError }
+                );
+            } else {
+                updateSlotForEntity.mutate(
+                    { id: slot.slotId, entityId, data: dto },
+                    { onSuccess: options?.onSuccess, onError: options?.onError }
+                );
+            }
         } else {
-            createSlot.mutate({ entityId, data: dto });
+            createSlot.mutate(
+                { entityId, data: dto },
+                { onSuccess: options?.onSuccess, onError: options?.onError }
+            );
         }
     };
 

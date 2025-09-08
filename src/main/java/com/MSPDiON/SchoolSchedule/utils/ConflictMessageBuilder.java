@@ -4,6 +4,7 @@ import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ConflictMessageBuilder {
@@ -47,5 +48,20 @@ public class ConflictMessageBuilder {
         student.getLastName(),
         student.getArrivalTime(),
         student.getDepartureTime());
+  }
+
+  public static String buildLimitedErrorMessage(Map<String, String> fieldErrors) {
+    if (fieldErrors == null || fieldErrors.isEmpty()) {
+      return "Validation failed";
+    }
+
+    List<String> messages = fieldErrors.values().stream().limit(3).collect(Collectors.toList());
+    String joined = String.join("; ", messages);
+
+    if (fieldErrors.size() > 3) {
+      joined += "; ...";
+    }
+
+    return joined;
   }
 }

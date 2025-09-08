@@ -7,6 +7,8 @@ interface SearchSelectProps {
     value: number | number[] | null;
     onChange: (value: number | number[] | null) => void;
     multiple?: boolean;
+    error?: boolean;
+    helperText?: string;
 }
 
 const SearchSelect: React.FC<SearchSelectProps> = ({
@@ -15,6 +17,8 @@ const SearchSelect: React.FC<SearchSelectProps> = ({
     value,
     onChange,
     multiple = false,
+    error = false,
+    helperText = '',
 }) => {
     const getOptionLabel = (option: { id: number; label: string }) => option.label;
 
@@ -45,8 +49,16 @@ const SearchSelect: React.FC<SearchSelectProps> = ({
             getOptionLabel={getOptionLabel}
             value={selectedOption}
             onChange={handleChange}
-            renderInput={(params) => <TextField {...params} label={label} fullWidth />}
             isOptionEqualToValue={isOptionEqualToValue}
+            renderInput={(params) => (
+                <TextField
+                    {...params}
+                    label={label}
+                    fullWidth
+                    error={error}
+                    helperText={helperText}
+                />
+            )}
         />
     );
 };

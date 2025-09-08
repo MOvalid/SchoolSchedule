@@ -14,7 +14,9 @@ import com.MSPDiON.SchoolSchedule.repository.*;
 import com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -53,22 +55,39 @@ public class ScheduleService {
   }
 
   private void validateSlot(ScheduleSlot slot) {
-    List<String> errorMessages = new ArrayList<>();
+    Map<String, String> errors = new HashMap<>();
 
     try {
       ensureTherapistHasClassOrStudents(slot);
     } catch (IllegalArgumentException e) {
-      errorMessages.add(e.getMessage());
+      errors.put("students", e.getMessage());
     }
 
-    errorMessages.addAll(checkTherapistAvailability(slot));
-    errorMessages.addAll(checkRoomAvailability(slot));
-    errorMessages.addAll(checkStudentConflicts(slot));
-    errorMessages.addAll(checkClassStudentConflicts(slot));
-    errorMessages.addAll(checkStudentDailyPresence(slot));
+    if (!checkTherapistAvailability(slot).isEmpty()) {
+      errors.put("therapist", String.join(", ", checkTherapistAvailability(slot)));
+    }
 
-    if (!errorMessages.isEmpty()) {
-      throw new ConflictException(String.join("\n\n", errorMessages));
+    if (!checkRoomAvailability(slot).isEmpty()) {
+      errors.put("room", String.join(", ", checkRoomAvailability(slot)));
+    }
+
+    List<String> studentErrors = checkStudentConflicts(slot);
+    if (!studentErrors.isEmpty()) {
+      errors.put("students", String.join(", ", studentErrors));
+    }
+
+    List<String> classErrors = checkClassStudentConflicts(slot);
+    if (!classErrors.isEmpty()) {
+      errors.put("studentClass", String.join(", ", classErrors));
+    }
+
+    List<String> presenceErrors = checkStudentDailyPresence(slot);
+    if (!presenceErrors.isEmpty()) {
+      errors.put("students", String.join(", ", presenceErrors));
+    }
+
+    if (!errors.isEmpty()) {
+      throw new ConflictException(errors);
     }
   }
 

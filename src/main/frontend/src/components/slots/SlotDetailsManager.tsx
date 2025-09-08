@@ -1,4 +1,5 @@
 import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
+import axios from 'axios';
 import SlotDetails from './SlotDetails';
 import SlotDialog from './SlotDialog';
 import {
@@ -20,11 +21,33 @@ interface SlotDetailsManagerProps {
     studentClasses: StudentClassDto[];
     entityType: EntityTypes;
     studentId: number;
-    editSlot: (slot: Slot, formValues: SlotFormValues) => void;
+    editSlot: (
+        slot: Slot,
+        formValues: SlotFormValues,
+        options?: { onSuccess?: () => void; onError?: (error: unknown) => void }
+    ) => Promise<void>;
     deleteSlot: (slot: Slot, applyToAll: boolean) => void;
     formValues: SlotFormValues | null;
     setFormValues: Dispatch<SetStateAction<SlotFormValues>>;
 }
+
+const mapBackendErrorsToFormFields = (errors: Record<string, string>): Record<string, string> => {
+    const mapping: Record<string, keyof SlotFormValues> = {
+        therapist: 'therapistId',
+        room: 'roomId',
+        studentClass: 'studentClassId',
+        students: 'studentIds',
+        title: 'title',
+        start: 'start',
+        end: 'end',
+    };
+    const result: Record<string, string> = {};
+    for (const key in errors) {
+        const mappedKey = mapping[key] ?? key;
+        result[mappedKey] = errors[key];
+    }
+    return result;
+};
 
 const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
     selectedSlot,
@@ -41,6 +64,8 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
     setFormValues,
 }) => {
     const [editOpen, setEditOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const openHandler = () => setEditOpen(true);
@@ -59,6 +84,7 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
             studentClassId: slot.studentClassId,
             applyToAll: true,
         });
+        setFieldErrors({});
         setEditOpen(true);
     };
 
@@ -70,26 +96,47 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
     const handleClose = () => {
         setEditOpen(false);
         setSelectedSlot(null);
+        setFieldErrors({});
     };
 
-    const handleSave = () => {
-        if (selectedSlot && formValues) editSlot(selectedSlot, formValues);
-        setEditOpen(false);
-        setSelectedSlot(null);
+    const handleError = (err: unknown) => {
+        if (axios.isAxiosError(err) && err.response?.data?.errors) {
+            setFieldErrors(mapBackendErrorsToFormFields(err.response.data.errors));
+        } else if (axios.isAxiosError(err) && err.response?.data?.message) {
+            setFieldErrors({ general: err.response.data.message });
+        } else if (err instanceof Error) {
+            setFieldErrors({ general: err.message });
+        } else {
+            setFieldErrors({ general: 'Nieznany błąd' });
+        }
+    };
+
+    const handleSave = async () => {
+        if (selectedSlot && formValues) {
+            setSaving(true);
+            await editSlot(selectedSlot, formValues, {
+                onSuccess: () => {
+                    handleClose();
+                    setSaving(false);
+                },
+                onError: (err: unknown) => {
+                    console.log('Error saving slot:', err);
+                    handleError(err);
+                    setSaving(false);
+                },
+            });
+        }
     };
 
     const selectedTherapist = selectedSlot?.therapistId
         ? therapists.find((t) => t.id === selectedSlot.therapistId) || null
         : null;
-
     const selectedRoom = selectedSlot?.roomId
         ? rooms.find((r) => r.id === selectedSlot.roomId) || null
         : null;
-
     const selectedClass = selectedSlot?.studentClassId
         ? studentClasses.find((c) => c.id === selectedSlot.studentClassId) || null
         : null;
-
     const selectedStudents = selectedSlot?.studentIds
         ? (selectedSlot.studentIds
               .map((id) => students.find((s) => s.id === id))
@@ -125,8 +172,9 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
                     students={students}
                     classes={studentClasses}
                     entityType={entityType}
-                    errorMessage={null}
-                    saving={false}
+                    saving={saving}
+                    fieldErrors={fieldErrors}
+                    setFieldErrors={setFieldErrors}
                 />
             )}
         </>

@@ -2,6 +2,7 @@ package com.MSPDiON.SchoolSchedule.dto.mapper;
 
 import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
+import com.MSPDiON.SchoolSchedule.exception.ConflictException;
 import com.MSPDiON.SchoolSchedule.model.*;
 import com.MSPDiON.SchoolSchedule.repository.RoomRepository;
 import com.MSPDiON.SchoolSchedule.repository.StudentClassRepository;
@@ -11,13 +12,14 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 @Component
 @RequiredArgsConstructor
@@ -39,7 +41,7 @@ public class ScheduleMapper {
 
     Set<Student> students = new HashSet<>();
     if (dto.getStudentIds() != null) {
-      students = new HashSet<Student>(studentRepository.findAllById(dto.getStudentIds()));
+      students = new HashSet<>(studentRepository.findAllById(dto.getStudentIds()));
     }
 
     LocalTime start = parseToLocalTime(dto.getStartTime());
@@ -64,47 +66,52 @@ public class ScheduleMapper {
   }
 
   public ScheduleSlot toEntity(CreateScheduleSlotDto dto) {
+    Map<String, String> errors = new HashMap<>();
+
+    if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) {
+      errors.put("title", "Nazwa zajęć jest wymagana");
+    }
     if (dto.getTherapistId() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Therapist ID is required");
+      errors.put("therapist", "Terapeuta jest wymagany");
     }
     if (dto.getRoomId() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room ID is required");
+      errors.put("room", "Sala jest wymagana");
     }
 
-    Therapist therapist =
-        therapistRepository
-            .findById(dto.getTherapistId())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Therapist not found"));
+    Therapist therapist = null;
+    if (dto.getTherapistId() != null) {
+      therapist = therapistRepository.findById(dto.getTherapistId()).orElse(null);
+      if (therapist == null) errors.put("therapist", "Nie znaleziono terapeuty");
+    }
 
-    Room room =
-        roomRepository
-            .findById(dto.getRoomId())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Room not found"));
+    Room room = null;
+    if (dto.getRoomId() != null) {
+      room = roomRepository.findById(dto.getRoomId()).orElse(null);
+      if (room == null) errors.put("room", "Nie znaleziono sali");
+    }
 
     StudentClass studentClass = null;
     if (dto.getStudentClassId() != null) {
-      studentClass =
-          studentClassRepository
-              .findById(dto.getStudentClassId())
-              .orElseThrow(
-                  () ->
-                      new ResponseStatusException(
-                          HttpStatus.BAD_REQUEST, "Student class not found"));
+      studentClass = studentClassRepository.findById(dto.getStudentClassId()).orElse(null);
+      if (studentClass == null) errors.put("studentClass", "Nie znaleziono klasy");
     }
 
     Set<Student> students = new HashSet<>();
     if (dto.getStudentId() != null) {
-      Student student =
-          studentRepository
-              .findById(dto.getStudentId())
-              .orElseThrow(
-                  () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student not found"));
-      students.add(student);
+      studentRepository
+          .findById(dto.getStudentId())
+          .ifPresentOrElse(students::add, () -> errors.put("students", "Nie znaleziono ucznia"));
     }
     if (dto.getStudentIds() != null && !dto.getStudentIds().isEmpty()) {
-      students.addAll(studentRepository.findAllById(dto.getStudentIds()));
+      List<Student> found = studentRepository.findAllById(dto.getStudentIds());
+      if (found.size() != dto.getStudentIds().size()) {
+        errors.put("students", "Nie znaleziono niektórych uczniów");
+      }
+      students.addAll(found);
+    }
+
+    if (!errors.isEmpty()) {
+      throw new ConflictException(errors);
     }
 
     LocalTime start = parseToLocalTime(dto.getStartTime());

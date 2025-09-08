@@ -8,8 +8,11 @@ import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.TherapistNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.ErrorResponse;
+import com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,11 +54,15 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(ConflictException.class)
-  public ResponseEntity<ErrorResponse> handleConflict(
-      ConflictException ex, HttpServletRequest request) {
-    ErrorResponse error =
-        new ErrorResponse(409, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
-    return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+  public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+    Map<String, Object> response = new HashMap<>();
+
+    Map<String, String> fieldErrors = ex.getFieldErrors();
+    String message = ConflictMessageBuilder.buildLimitedErrorMessage(fieldErrors);
+
+    response.put("message", message);
+    response.put("errors", fieldErrors);
+    return ResponseEntity.badRequest().body(response);
   }
 
   @ExceptionHandler(ResponseStatusException.class)

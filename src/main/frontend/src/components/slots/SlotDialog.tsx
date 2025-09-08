@@ -31,14 +31,15 @@ interface Props {
     formValues: SlotFormValues;
     setFormValues: (val: SlotFormValues) => void;
     onClose: () => void;
-    onSave: () => void;
+    onSave: () => Promise<void>;
     therapists: TherapistDto[];
     rooms: RoomDto[];
     students: StudentDto[];
     classes: StudentClassDto[];
     entityType: EntityTypes;
-    errorMessage?: string | null;
     saving?: boolean;
+    fieldErrors: Record<string, string>;
+    setFieldErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -59,13 +60,15 @@ const SlotDialog: React.FC<Props> = ({
     students,
     classes,
     entityType,
-    errorMessage,
     saving,
+    fieldErrors,
+    setFieldErrors,
 }) => {
     if (!slot) return null;
 
     const updateField = <K extends keyof SlotFormValues>(field: K, value: SlotFormValues[K]) => {
         setFormValues({ ...formValues, [field]: value });
+        if (fieldErrors[field]) setFieldErrors({ ...fieldErrors, [field]: '' });
     };
 
     const handleTimeChange = (field: 'start' | 'end', value: string) => {
@@ -91,6 +94,12 @@ const SlotDialog: React.FC<Props> = ({
     const showStudentSelect = entityType === EntityTypes.Therapist;
     const showClassSelect = entityType !== EntityTypes.Student;
 
+    const handleSaveClick = async () => {
+        await onSave();
+    };
+
+    const getFieldError = (field: keyof SlotFormValues) => fieldErrors[field] ?? '';
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>{slot.slotId ? 'Edycja zajęć' : 'Dodawanie zajęć'}</DialogTitle>
@@ -102,6 +111,8 @@ const SlotDialog: React.FC<Props> = ({
                         margin="dense"
                         value={formValues.title}
                         onChange={(e) => updateField('title', e.target.value)}
+                        error={!!getFieldError('title')}
+                        helperText={getFieldError('title')}
                     />
 
                     <SearchSelect
@@ -110,6 +121,8 @@ const SlotDialog: React.FC<Props> = ({
                         value={formValues.therapistId ?? null}
                         onChange={(id) => updateField('therapistId', (id as number) ?? undefined)}
                         multiple={false}
+                        error={!!getFieldError('therapistId')}
+                        helperText={getFieldError('therapistId')}
                     />
 
                     <SearchSelect
@@ -118,6 +131,8 @@ const SlotDialog: React.FC<Props> = ({
                         value={formValues.roomId ?? null}
                         onChange={(id) => updateField('roomId', (id as number) ?? undefined)}
                         multiple={false}
+                        error={!!getFieldError('roomId')}
+                        helperText={getFieldError('roomId')}
                     />
 
                     <TextField
@@ -127,6 +142,8 @@ const SlotDialog: React.FC<Props> = ({
                         margin="dense"
                         value={getTimeFromISO(formValues.start)}
                         onChange={(e) => handleTimeChange('start', e.target.value)}
+                        error={!!getFieldError('start')}
+                        helperText={getFieldError('start')}
                     />
                     <TextField
                         label="Godzina zakończenia"
@@ -135,28 +152,38 @@ const SlotDialog: React.FC<Props> = ({
                         margin="dense"
                         value={getTimeFromISO(formValues.end)}
                         onChange={(e) => handleTimeChange('end', e.target.value)}
+                        error={!!getFieldError('end')}
+                        helperText={getFieldError('end')}
                     />
 
                     {showStudentSelect && (
-                        <SearchSelect
-                            label="Uczniowie"
-                            items={studentItems}
-                            value={formValues.studentIds ?? []}
-                            onChange={(ids) => updateField('studentIds', ids as number[])}
-                            multiple
-                        />
+                        <>
+                            <SearchSelect
+                                label="Uczniowie"
+                                items={studentItems}
+                                value={formValues.studentIds ?? []}
+                                onChange={(ids) => updateField('studentIds', ids as number[])}
+                                multiple
+                                error={!!getFieldError('studentIds')}
+                                helperText={getFieldError('studentIds')}
+                            />
+                        </>
                     )}
 
                     {showClassSelect && (
-                        <SearchSelect
-                            label="Klasa"
-                            items={classItems}
-                            value={formValues.studentClassId ?? null}
-                            onChange={(id) =>
-                                updateField('studentClassId', (id as number) ?? undefined)
-                            }
-                            multiple={false}
-                        />
+                        <>
+                            <SearchSelect
+                                label="Klasa"
+                                items={classItems}
+                                value={formValues.studentClassId ?? null}
+                                onChange={(id) =>
+                                    updateField('studentClassId', (id as number) ?? undefined)
+                                }
+                                multiple={false}
+                                error={!!getFieldError('studentClassId')}
+                                helperText={getFieldError('studentClassId')}
+                            />
+                        </>
                     )}
 
                     {showApplyToAllCheckbox && (
@@ -171,16 +198,19 @@ const SlotDialog: React.FC<Props> = ({
                         />
                     )}
 
-                    {errorMessage && (
-                        <Typography sx={styles.errorText} variant="body2">
-                            {errorMessage}
-                        </Typography>
+                    {fieldErrors.general && (
+                        <Typography sx={styles.errorText}>{fieldErrors.general}</Typography>
                     )}
                 </Stack>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Anuluj</Button>
-                <Button onClick={onSave} variant="contained" disabled={saving} sx={styles.button}>
+                <Button
+                    onClick={handleSaveClick}
+                    variant="contained"
+                    disabled={saving}
+                    sx={styles.button}
+                >
                     Zapisz
                 </Button>
             </DialogActions>
