@@ -22,6 +22,7 @@ import {
     rowGridSx,
     confirmDeleteStackSx,
 } from '../../styles/slotDetails.styles';
+import ConfirmDeleteActions from '../common/ConfirmDeleteActions';
 
 interface SlotDetailsProps {
     open: boolean;
@@ -113,34 +114,23 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
             </DialogContent>
 
             <DialogActions>
-                {onEdit && (
-                    <Button variant="outlined" onClick={() => onEdit(slot)}>
+                {onEdit && !confirmDelete && (
+                    <Button variant="contained" onClick={() => onEdit(slot)}>
                         Edytuj
                     </Button>
                 )}
-                {onDelete &&
-                    (confirmDelete ? (
-                        <>
-                            <Button
-                                variant="contained"
-                                color="error"
-                                onClick={() => onDelete(slot, applyToAll)}
-                            >
-                                Usuń
-                            </Button>
-                            <Button variant="outlined" onClick={() => setConfirmDelete(false)}>
-                                Anuluj
-                            </Button>
-                        </>
-                    ) : (
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={() => setConfirmDelete(true)}
-                        >
-                            Usuń
-                        </Button>
-                    ))}
+
+                <ConfirmDeleteActions
+                    confirming={confirmDelete}
+                    onConfirmDeleteChange={setConfirmDelete}
+                    onDelete={() => onDelete?.(slot, applyToAll)}
+                />
+
+                {!confirmDelete && (
+                    <Button variant="outlined" onClick={onClose}>
+                        Powrót
+                    </Button>
+                )}
             </DialogActions>
         </Dialog>
     );

@@ -167,6 +167,7 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
                     setFormValues={setFormValues}
                     onClose={handleClose}
                     onSave={handleSave}
+                    onDelete={handleDelete}
                     therapists={therapists}
                     rooms={rooms}
                     students={students}

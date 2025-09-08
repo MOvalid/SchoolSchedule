@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -24,6 +24,7 @@ import {
 import { toISOTime } from '../../utils/DateUtils';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import SearchSelect from '../common/SearchSelect';
+import ConfirmDeleteActions from '../common/ConfirmDeleteActions';
 
 interface Props {
     open: boolean;
@@ -32,6 +33,7 @@ interface Props {
     setFormValues: (val: SlotFormValues) => void;
     onClose: () => void;
     onSave: () => Promise<void>;
+    onDelete: (slot: Slot, applyToAll: boolean) => void;
     therapists: TherapistDto[];
     rooms: RoomDto[];
     students: StudentDto[];
@@ -55,6 +57,7 @@ const SlotDialog: React.FC<Props> = ({
     setFormValues,
     onClose,
     onSave,
+    onDelete,
     therapists,
     rooms,
     students,
@@ -64,6 +67,8 @@ const SlotDialog: React.FC<Props> = ({
     fieldErrors,
     setFieldErrors,
 }) => {
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
     if (!slot) return null;
 
     const updateField = <K extends keyof SlotFormValues>(field: K, value: SlotFormValues[K]) => {
@@ -157,33 +162,29 @@ const SlotDialog: React.FC<Props> = ({
                     />
 
                     {showStudentSelect && (
-                        <>
-                            <SearchSelect
-                                label="Uczniowie"
-                                items={studentItems}
-                                value={formValues.studentIds ?? []}
-                                onChange={(ids) => updateField('studentIds', ids as number[])}
-                                multiple
-                                error={!!getFieldError('studentIds')}
-                                helperText={getFieldError('studentIds')}
-                            />
-                        </>
+                        <SearchSelect
+                            label="Uczniowie"
+                            items={studentItems}
+                            value={formValues.studentIds ?? []}
+                            onChange={(ids) => updateField('studentIds', ids as number[])}
+                            multiple
+                            error={!!getFieldError('studentIds')}
+                            helperText={getFieldError('studentIds')}
+                        />
                     )}
 
                     {showClassSelect && (
-                        <>
-                            <SearchSelect
-                                label="Klasa"
-                                items={classItems}
-                                value={formValues.studentClassId ?? null}
-                                onChange={(id) =>
-                                    updateField('studentClassId', (id as number) ?? undefined)
-                                }
-                                multiple={false}
-                                error={!!getFieldError('studentClassId')}
-                                helperText={getFieldError('studentClassId')}
-                            />
-                        </>
+                        <SearchSelect
+                            label="Klasa"
+                            items={classItems}
+                            value={formValues.studentClassId ?? null}
+                            onChange={(id) =>
+                                updateField('studentClassId', (id as number) ?? undefined)
+                            }
+                            multiple={false}
+                            error={!!getFieldError('studentClassId')}
+                            helperText={getFieldError('studentClassId')}
+                        />
                     )}
 
                     {showApplyToAllCheckbox && (
@@ -203,16 +204,29 @@ const SlotDialog: React.FC<Props> = ({
                     )}
                 </Stack>
             </DialogContent>
+
             <DialogActions>
-                <Button onClick={onClose}>Anuluj</Button>
-                <Button
-                    onClick={handleSaveClick}
-                    variant="contained"
-                    disabled={saving}
-                    sx={styles.button}
-                >
-                    Zapisz
-                </Button>
+                {slot.slotId && (
+                    <ConfirmDeleteActions
+                        confirming={confirmDelete}
+                        onConfirmDeleteChange={setConfirmDelete}
+                        onDelete={() => onDelete(slot, formValues.applyToAll)}
+                    />
+                )}
+
+                {!confirmDelete && (
+                    <>
+                        <Button onClick={onClose}>Powrót</Button>
+                        <Button
+                            onClick={handleSaveClick}
+                            variant="contained"
+                            disabled={saving}
+                            sx={styles.button}
+                        >
+                            Zapisz
+                        </Button>
+                    </>
+                )}
             </DialogActions>
         </Dialog>
     );
