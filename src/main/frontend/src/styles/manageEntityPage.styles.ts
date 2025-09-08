@@ -14,23 +14,18 @@ export const paperContainer: SxProps<Theme> = {
     mb: 3,
 };
 
-export const modeButtonsBox: SxProps<Theme> = {
-    display: 'flex',
-    gap: 2,
-    mb: 2,
-};
-
-export const entityTypeButtonsBox: SxProps<Theme> = {
-    display: 'flex',
-    gap: 2,
-    mb: 2,
-};
-
 export const searchSelectBox: SxProps<Theme> = {
     mb: 2,
+    mt: 2,
 };
 
 export const wrapperBox: SxProps<Theme> = {
     width: '100%',
     maxWidth: 600,
+};
+
+export const actionGroupsContainer: SxProps<Theme> = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
 };

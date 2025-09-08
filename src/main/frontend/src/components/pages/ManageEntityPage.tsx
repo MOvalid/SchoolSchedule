@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import { StudentClassDto, StudentDto, TherapistDto } from '../../types/types';
 import SearchSelect from '../common/SearchSelect';
@@ -9,22 +9,29 @@ import { getAllClasses } from '../../services/StudentClassService';
 import { CreateEntityPageWrapper } from '../wrappers/CreateEntityPageWrapper';
 import { EditEntityPageWrapper } from '../wrappers/EditEntityPageWrapper';
 import {
+    actionGroupsContainer,
     pageContainer,
     paperContainer,
-    modeButtonsBox,
     searchSelectBox,
     wrapperBox,
 } from '../../styles/manageEntityPage.styles';
 import { useNavigate } from 'react-router-dom';
 import EntityTypeSelector from '../common/EntityTypeSelector';
+import ToggleButtonGroupBox from '../common/ToggleButtonGroupBox';
 
 interface EntityOption {
     id: number;
     label: string;
 }
 
+export enum Mode {
+    Create = 'create',
+    Edit = 'edit',
+    Import = 'import',
+}
+
 const ManageEntityPage: React.FC = () => {
-    const [mode, setMode] = useState<'create' | 'edit'>('create');
+    const [mode, setMode] = useState<Mode>(Mode.Create);
     const [entityType, setEntityType] = useState<EntityTypes>(EntityTypes.Student);
     const [selectedEntity, setSelectedEntity] = useState<
         StudentDto | TherapistDto | StudentClassDto | undefined
@@ -77,6 +84,10 @@ const ManageEntityPage: React.FC = () => {
         fetchEntities();
     }, [entityType, mode]);
 
+    useEffect(() => {
+        setSelectedEntity(undefined);
+    }, [entityType]);
+
     const handleSelectEntity = async (id: number | null) => {
         if (id === null) {
             setSelectedEntity(undefined);
@@ -113,35 +124,26 @@ const ManageEntityPage: React.FC = () => {
                     Zarządzanie encjami
                 </Typography>
 
-                <Box sx={modeButtonsBox}>
-                    <Button
-                        variant={mode === 'create' ? 'contained' : 'outlined'}
-                        onClick={() => {
-                            setMode('create');
-                            setSelectedEntity(undefined);
+                <Box sx={actionGroupsContainer}>
+                    <ToggleButtonGroupBox<Mode>
+                        selected={mode}
+                        onChange={(val) => {
+                            setMode(val);
+                            if (val === Mode.Create) {
+                                setSelectedEntity(undefined);
+                            } else if (val === Mode.Import) {
+                                navigate('/import');
+                            }
                         }}
-                        fullWidth
-                    >
-                        Dodaj
-                    </Button>
-                    <Button
-                        variant={mode === 'edit' ? 'contained' : 'outlined'}
-                        onClick={() => setMode('edit')}
-                        fullWidth
-                    >
-                        Edytuj
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={() => navigate('/import')}
-                        fullWidth
-                    >
-                        Importuj dane
-                    </Button>
-                </Box>
+                        options={[
+                            { value: Mode.Create, label: 'Dodaj' },
+                            { value: Mode.Edit, label: 'Edytuj' },
+                            { value: Mode.Import, label: 'Importuj dane', color: 'secondary' },
+                        ]}
+                    />
 
-                <EntityTypeSelector selected={entityType} onChange={setEntityType} />
+                    <EntityTypeSelector selected={entityType} onChange={setEntityType} />
+                </Box>
 
                 {mode === 'edit' && entityType && (
                     <Box sx={searchSelectBox}>

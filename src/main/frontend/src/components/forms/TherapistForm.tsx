@@ -126,12 +126,14 @@ const TherapistForm: React.FC<TherapistFormProps> = ({ mode, initialData, onSucc
                     }
                     input={<OutlinedInput label="Oddziały" />}
                     renderValue={(selected) =>
-                        (selected as Department[]).map((d) => DepartmentLabels[d]).join(', ')
+                        ((selected as Department[]) ?? [])
+                            .map((d) => DepartmentLabels[d])
+                            .join(', ')
                     }
                 >
                     {DEPARTMENTS.map((dept) => (
                         <MenuItem key={dept} value={dept}>
-                            <Checkbox checked={formValues.departments.includes(dept)} />
+                            <Checkbox checked={(formValues.departments ?? []).includes(dept)} />
                             <ListItemText primary={DepartmentLabels[dept]} />
                         </MenuItem>
                     ))}

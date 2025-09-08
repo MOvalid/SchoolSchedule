@@ -7,8 +7,7 @@ import { useFileImport } from '../../hooks/useFileImport';
 import { useSnackbar } from '../../context/SnackbarContext';
 
 const styles: Record<string, SxProps<Theme>> = {
-    container: { p: 3 },
-    paper: { p: 3, maxWidth: 560, margin: '0 auto' },
+    paper: { p: 3, maxWidth: 600, margin: '0 auto', width: '100%' },
     title: { mb: 2 },
     groupLabel: { mt: 2, mb: 1, fontWeight: 600 },
     uploadBox: { mt: 2 },
@@ -60,7 +59,7 @@ const ImportPage: React.FC = () => {
     }, [successMessage, errorMessage, validationErrors]);
 
     return (
-        <Box sx={styles.container}>
+        <Box>
             <Paper sx={styles.paper}>
                 <Typography variant="h6" sx={styles.title}>
                     Import danych

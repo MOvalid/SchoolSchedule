@@ -1,38 +1,23 @@
 import React from 'react';
-import { Box, Button, SxProps, Theme } from '@mui/material';
+import ToggleButtonGroupBox from '../common/ToggleButtonGroupBox';
 import { EntityTypes } from '../../types/enums/entityTypes';
 
 interface Props {
     selected: EntityTypes;
     onChange: (type: EntityTypes) => void;
-    sx?: SxProps<Theme>;
 }
 
-const EntityTypeSelector: React.FC<Props> = ({ selected, onChange, sx }) => {
+const EntityTypeSelector: React.FC<Props> = ({ selected, onChange }) => {
     return (
-        <Box sx={{ display: 'flex', gap: 1, ...sx }}>
-            <Button
-                variant={selected === EntityTypes.Student ? 'contained' : 'outlined'}
-                onClick={() => onChange(EntityTypes.Student)}
-                fullWidth
-            >
-                Uczeń
-            </Button>
-            <Button
-                variant={selected === EntityTypes.Therapist ? 'contained' : 'outlined'}
-                onClick={() => onChange(EntityTypes.Therapist)}
-                fullWidth
-            >
-                Terapeuta
-            </Button>
-            <Button
-                variant={selected === EntityTypes.Class ? 'contained' : 'outlined'}
-                onClick={() => onChange(EntityTypes.Class)}
-                fullWidth
-            >
-                Klasa
-            </Button>
-        </Box>
+        <ToggleButtonGroupBox
+            selected={selected}
+            onChange={onChange}
+            options={[
+                { value: EntityTypes.Student, label: 'Uczeń' },
+                { value: EntityTypes.Therapist, label: 'Terapeuta' },
+                { value: EntityTypes.Class, label: 'Klasa' },
+            ]}
+        />
     );
 };
 
