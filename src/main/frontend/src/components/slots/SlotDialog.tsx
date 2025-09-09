@@ -25,6 +25,7 @@ import { getDateFromISO, getTimeFromISO, toISOTime } from '../../utils/DateUtils
 import { EntityTypes } from '../../types/enums/entityTypes';
 import SearchSelect from '../common/SearchSelect';
 import ConfirmDeleteActions from '../common/ConfirmDeleteActions';
+import { confirmDeleteStackSx } from '../../styles/slotDetails.styles';
 
 interface Props {
     open: boolean;
@@ -210,6 +211,14 @@ const SlotDialog: React.FC<Props> = ({
                             error={!!getFieldError('studentClassId')}
                             helperText={getFieldError('studentClassId')}
                         />
+                    )}
+
+                    {confirmDelete && (
+                        <Stack sx={confirmDeleteStackSx}>
+                            <Typography color="error" fontWeight={600}>
+                                Czy na pewno chcesz usunąć ten slot?
+                            </Typography>
+                        </Stack>
                     )}
 
                     {showApplyToAllCheckbox && (

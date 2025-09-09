@@ -62,6 +62,13 @@ public class ScheduleService {
   private void validateSlot(ScheduleSlot slot) {
     Map<String, String> errors = new HashMap<>();
 
+    // Sprawdzenie liczby zajęć w danym dniu dla uczniów
+    List<String> tooManySessionsErrors = checkDailyStudentSessionLimit(slot);
+    if (!tooManySessionsErrors.isEmpty()) {
+      errors.put("students", String.join(", ", tooManySessionsErrors));
+      throw new ConflictException(errors);
+    }
+
     // Sprawdzenie, czy slot ma klasę lub uczniów
     try {
       ensureTherapistHasClassOrStudents(slot);
@@ -128,6 +135,45 @@ public class ScheduleService {
     if (!errors.isEmpty()) {
       throw new ConflictException(errors);
     }
+  }
+
+  private List<String> checkDailyStudentSessionLimit(ScheduleSlot slot) {
+    List<String> messages = new ArrayList<>();
+
+    if ((slot.getStudents() == null || slot.getStudents().isEmpty())
+        && slot.getStudentClass() != null) {
+      return messages;
+    }
+
+    if (slot.getStudents() == null) {
+      return messages;
+    }
+
+    for (Student student : slot.getStudents()) {
+      List<ScheduleSlot> studentSlots = scheduleSlotRepository.findByStudentId(student.getId());
+
+      long sameDayCount =
+          studentSlots.stream()
+              .filter(s -> !s.getId().equals(slot.getId()))
+              .filter(s -> s.getDayOfWeek() == slot.getDayOfWeek())
+              .filter(s -> s.getStudentClass() == null)
+              .count();
+
+      sameDayCount++;
+
+      if (sameDayCount > 3) {
+        messages.add(
+            "Uczeń "
+                + student.getFirstName()
+                + " "
+                + student.getLastName()
+                + " ma już zaplanowane "
+                + (sameDayCount - 1)
+                + " zajęcia tego dnia. Maksymalnie dozwolone to 3.");
+      }
+    }
+
+    return messages;
   }
 
   private boolean areSlotsOverlapping(ScheduleSlot slot1, ScheduleSlot slot2) {
