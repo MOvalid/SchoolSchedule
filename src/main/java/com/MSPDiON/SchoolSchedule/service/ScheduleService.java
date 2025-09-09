@@ -2,17 +2,21 @@ package com.MSPDiON.SchoolSchedule.service;
 
 import static com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder.buildPresenceConflictMessage;
 import static com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder.buildStudentClassConflictMessage;
+import static com.MSPDiON.SchoolSchedule.utils.DateUtils.isTimeOverlap;
 
 import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.mapper.ScheduleMapper;
 import com.MSPDiON.SchoolSchedule.exception.ConflictException;
+import com.MSPDiON.SchoolSchedule.exception.ScheduleSlotNotFoundException;
+import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.repository.*;
 import com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,8 +44,9 @@ public class ScheduleService {
     return scheduleMapper.toDto(scheduleSlotRepository.save(entity));
   }
 
-  public List<ScheduleSlotDto> getScheduleForTherapist(Long therapistId) {
+  public List<ScheduleSlotDto> getScheduleForTherapist(Long therapistId, LocalDate date) {
     return scheduleSlotRepository.findByTherapistId(therapistId).stream()
+        .filter(slot -> isSlotValidForDate(slot, date))
         .map(scheduleMapper::toDto)
         .toList();
   }
@@ -57,38 +62,86 @@ public class ScheduleService {
   private void validateSlot(ScheduleSlot slot) {
     Map<String, String> errors = new HashMap<>();
 
+    // Sprawdzenie, czy slot ma klasę lub uczniów
     try {
       ensureTherapistHasClassOrStudents(slot);
     } catch (IllegalArgumentException e) {
       errors.put("students", e.getMessage());
     }
 
-    if (!checkTherapistAvailability(slot).isEmpty()) {
-      errors.put("therapist", String.join(", ", checkTherapistAvailability(slot)));
+    // Sprawdzenie dostępności terapeuty z uwzględnieniem dat
+    List<String> therapistConflicts = checkTherapistAvailability(slot);
+    if (!therapistConflicts.isEmpty()) {
+      errors.put("therapist", String.join(", ", therapistConflicts));
     }
 
-    if (!checkRoomAvailability(slot).isEmpty()) {
-      errors.put("room", String.join(", ", checkRoomAvailability(slot)));
+    // Sprawdzenie dostępności sali z uwzględnieniem dat
+    List<String> roomConflicts = checkRoomAvailability(slot);
+    if (!roomConflicts.isEmpty()) {
+      errors.put("room", String.join(", ", roomConflicts));
     }
 
+    // Konflikty uczniów z uwzględnieniem dat
     List<String> studentErrors = checkStudentConflicts(slot);
     if (!studentErrors.isEmpty()) {
       errors.put("students", String.join(", ", studentErrors));
     }
 
+    // Konflikty klasy z uwzględnieniem dat
     List<String> classErrors = checkClassStudentConflicts(slot);
     if (!classErrors.isEmpty()) {
       errors.put("studentClass", String.join(", ", classErrors));
     }
 
+    // Sprawdzenie obecności uczniów w ciągu dnia
     List<String> presenceErrors = checkStudentDailyPresence(slot);
     if (!presenceErrors.isEmpty()) {
       errors.put("students", String.join(", ", presenceErrors));
     }
 
+    // Sprawdzenie dat obowiązywania
+    if (slot.getValidFrom() == null) {
+      errors.put("validFrom", "Data rozpoczęcia obowiązywania slotu jest wymagana");
+    } else if (slot.getValidTo() != null && slot.getValidFrom().isAfter(slot.getValidTo())) {
+      errors.put("validTo", "Data zakończenia nie może być przed datą rozpoczęcia");
+    }
+
+    List<ScheduleSlot> relatedSlots = new ArrayList<>();
+    if (slot.getStudentClass() != null) {
+      relatedSlots.addAll(
+          scheduleSlotRepository.findByStudentClassId(slot.getStudentClass().getId()));
+    }
+    if (slot.getStudents() != null) {
+      for (Student student : slot.getStudents()) {
+        relatedSlots.addAll(scheduleSlotRepository.findByStudentId(student.getId()));
+      }
+    }
+    for (ScheduleSlot existing : relatedSlots) {
+      if (existing.getId().equals(slot.getId())) continue;
+      if (areSlotsOverlapping(slot, existing)) {
+        errors.put(
+            "startTime",
+            "Godziny slotu kolidują z istniejącym slotem w tym samym dniu tygodnia i okresie obowiązywania.");
+      }
+    }
+
     if (!errors.isEmpty()) {
       throw new ConflictException(errors);
     }
+  }
+
+  private boolean areSlotsOverlapping(ScheduleSlot slot1, ScheduleSlot slot2) {
+    LocalDate slot1From = slot1.getValidFrom();
+    LocalDate slot1To = slot1.getValidTo() != null ? slot1.getValidTo() : LocalDate.MAX;
+    LocalDate slot2From = slot2.getValidFrom();
+    LocalDate slot2To = slot2.getValidTo() != null ? slot2.getValidTo() : LocalDate.MAX;
+
+    if (slot1To.isBefore(slot2From) || slot1From.isAfter(slot2To)) return false;
+
+    if (!slot1.getDayOfWeek().equals(slot2.getDayOfWeek())) return false;
+
+    return isTimeOverlap(
+        slot1.getStartTime(), slot1.getEndTime(), slot2.getStartTime(), slot2.getEndTime());
   }
 
   private List<String> checkStudentDailyPresence(ScheduleSlot slot) {
@@ -139,7 +192,10 @@ public class ScheduleService {
   private List<String> checkTherapistAvailability(ScheduleSlot slot) {
     List<ScheduleSlot> conflicts =
         scheduleSlotRepository.findConflictsByTherapist(
-            slot.getTherapist().getId(), slot.getStartTime(), slot.getEndTime());
+            slot.getTherapist().getId(),
+            slot.getDayOfWeek(),
+            slot.getStartTime(),
+            slot.getEndTime());
 
     conflicts.removeIf(c -> c.getId().equals(slot.getId()));
 
@@ -150,7 +206,7 @@ public class ScheduleService {
   private List<String> checkRoomAvailability(ScheduleSlot slot) {
     List<ScheduleSlot> conflicts =
         scheduleSlotRepository.findConflictsByRoom(
-            slot.getRoom().getId(), slot.getStartTime(), slot.getEndTime());
+            slot.getRoom().getId(), slot.getDayOfWeek(), slot.getStartTime(), slot.getEndTime());
 
     conflicts.removeIf(c -> c.getId().equals(slot.getId()));
 
@@ -165,7 +221,7 @@ public class ScheduleService {
     for (Student student : slot.getStudents()) {
       List<ScheduleSlot> conflicts =
           scheduleSlotRepository.findConflictsByStudent(
-              student.getId(), slot.getStartTime(), slot.getEndTime());
+              student.getId(), slot.getDayOfWeek(), slot.getStartTime(), slot.getEndTime());
 
       conflicts.removeIf(c -> c.getId().equals(slot.getId()));
 
@@ -194,7 +250,7 @@ public class ScheduleService {
       ScheduleSlot slot, Student student, StudentClass studentClass) {
     List<ScheduleSlot> conflicts =
         scheduleSlotRepository.findConflictsByStudent(
-            student.getId(), slot.getStartTime(), slot.getEndTime());
+            student.getId(), slot.getDayOfWeek(), slot.getStartTime(), slot.getEndTime());
 
     conflicts.removeIf(c -> c.getId().equals(slot.getId()));
 
@@ -204,35 +260,46 @@ public class ScheduleService {
     return Optional.empty();
   }
 
-  public List<ScheduleSlotDto> getAllScheduleSlots() {
-    return scheduleSlotRepository.findAll().stream().map(scheduleMapper::toDto).toList();
+  public List<ScheduleSlotDto> getAllScheduleSlots(LocalDate date) {
+    return scheduleSlotRepository.findAll().stream()
+        .filter(slot -> isSlotValidForDate(slot, date))
+        .map(scheduleMapper::toDto)
+        .toList();
   }
 
   public ScheduleSlotDto getById(Long id) {
     ScheduleSlot slot =
         scheduleSlotRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("Schedule slot not found with id: " + id));
+            .orElseThrow(() -> new ScheduleSlotNotFoundException(id));
     return scheduleMapper.toDto(slot);
   }
 
-  public List<ScheduleSlotDto> getScheduleForStudentDto(Long studentId) {
+  public List<ScheduleSlotDto> getScheduleForStudentDto(Long studentId, LocalDate date) {
     return scheduleSlotRepository.findByStudentId(studentId).stream()
+        .filter(slot -> isSlotValidForDate(slot, date))
         .map(scheduleMapper::toDto)
         .toList();
   }
 
-  public List<ScheduleSlotDto> getScheduleForClassDto(Long classId) {
+  public List<ScheduleSlotDto> getScheduleForClassDto(Long classId, LocalDate date) {
     return scheduleSlotRepository.findByStudentClassId(classId).stream()
+        .filter(slot -> isSlotValidForDate(slot, date))
         .map(scheduleMapper::toDto)
         .toList();
+  }
+
+  private boolean isSlotValidForDate(ScheduleSlot slot, LocalDate date) {
+    if (date == null) return true;
+    if (slot.getValidFrom() != null && slot.getValidFrom().isAfter(date)) return false;
+    return slot.getValidTo() == null || !slot.getValidTo().isBefore(date);
   }
 
   public ScheduleSlotDto updateScheduleSlotForAllStudents(Long id, ScheduleSlotDto dto) {
     ScheduleSlot existing =
         scheduleSlotRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("Schedule slot not found with id: " + id));
+            .orElseThrow(() -> new ScheduleSlotNotFoundException(id));
 
     ScheduleSlot updated = scheduleMapper.toEntity(dto);
     updated.setId(existing.getId());
@@ -246,12 +313,12 @@ public class ScheduleService {
     ScheduleSlot existing =
         scheduleSlotRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("Schedule slot not found with id: " + id));
+            .orElseThrow(() -> new ScheduleSlotNotFoundException(id));
 
     Student student =
         studentRepository
             .findById(studentId)
-            .orElseThrow(() -> new RuntimeException("Student not found with id: " + studentId));
+            .orElseThrow(() -> new StudentClassNotFoundException(studentId));
 
     existing.getStudents().removeIf(s -> s.getId().equals(studentId));
     scheduleSlotRepository.save(existing);
@@ -266,14 +333,14 @@ public class ScheduleService {
 
   public void deleteScheduleSlot(Long id) {
     if (!scheduleSlotRepository.existsById(id)) {
-      throw new RuntimeException("Schedule slot not found with id: " + id);
+      throw new ScheduleSlotNotFoundException(id);
     }
     scheduleSlotRepository.deleteById(id);
   }
 
   public void deleteScheduleSlotForAllStudents(Long id) {
     if (!scheduleSlotRepository.existsById(id)) {
-      throw new RuntimeException("Schedule slot not found with id: " + id);
+      throw new ScheduleSlotNotFoundException(id);
     }
     scheduleSlotRepository.deleteById(id);
   }
@@ -282,7 +349,7 @@ public class ScheduleService {
     ScheduleSlot slot =
         scheduleSlotRepository
             .findById(slotId)
-            .orElseThrow(() -> new RuntimeException("Schedule slot not found with id: " + slotId));
+            .orElseThrow(() -> new ScheduleSlotNotFoundException(slotId));
 
     boolean removed = slot.getStudents().removeIf(s -> s.getId().equals(studentId));
 

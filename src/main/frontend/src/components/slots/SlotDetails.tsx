@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { Slot, TherapistDto, RoomDto, StudentDto, StudentClassDto } from '../../types/types';
-import { formatTimeRange } from '../../utils/DateUtils';
+import { formatTimeRange, getValidityText } from '../../utils/DateUtils';
 import {
     dialogTitleSx,
     titleTypographySx,
@@ -91,6 +91,10 @@ const SlotDetails: React.FC<SlotDetailsProps> = ({
                     {renderRow('Czas:', formatTimeRange(slot.start, slot.end))}
                     {renderRow('Klasa:', studentClass?.name || '-')}
                     {renderRow('Uczniowie:', studentNames)}
+                    {renderRow(
+                        'Data obowiązywania:',
+                        getValidityText(slot.validFrom, slot.validTo)
+                    )}
                 </Stack>
 
                 {confirmDelete && (

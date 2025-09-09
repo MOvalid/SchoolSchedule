@@ -26,4 +26,7 @@ public class ScheduleSlotDto {
   private String startTime;
   private String endTime;
   private int dayOfWeek;
+
+  private String validFrom;
+  private String validTo;
 }

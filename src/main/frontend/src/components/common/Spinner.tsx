@@ -3,6 +3,7 @@ import { Box, CircularProgress, SxProps, Theme, useTheme } from '@mui/material';
 
 interface SpinnerProps {
     fullScreen?: boolean;
+    isLoading?: boolean;
 }
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -19,23 +20,27 @@ const styles: Record<string, SxProps<Theme>> = {
         zIndex: 1300,
     },
     inlineContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
-        py: 2,
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        zIndex: 10,
     },
 };
 
-export const Spinner: React.FC<SpinnerProps> = ({ fullScreen = false }) => {
+export const Spinner: React.FC<SpinnerProps> = ({ fullScreen = false, isLoading = true }) => {
     const theme = useTheme();
 
+    if (!isLoading) return null;
+
     const size = (() => {
-        if (theme.breakpoints.values.xs) {
-            return 60;
-        }
-        if (theme.breakpoints.values.sm) {
-            return 100;
-        }
+        if (theme.breakpoints.values.xs) return 60;
+        if (theme.breakpoints.values.sm) return 100;
         return 140;
     })();
 

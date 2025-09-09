@@ -3,8 +3,10 @@ package com.MSPDiON.SchoolSchedule.rest;
 import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.service.ScheduleService;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +18,10 @@ public class ScheduleController {
   private final ScheduleService scheduleService;
 
   @GetMapping
-  public List<ScheduleSlotDto> getAll() {
-    return scheduleService.getAllScheduleSlots();
+  public List<ScheduleSlotDto> getAll(
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate date) {
+    return scheduleService.getAllScheduleSlots(date);
   }
 
   @GetMapping("/{id}")
@@ -26,18 +30,27 @@ public class ScheduleController {
   }
 
   @GetMapping("/therapist/{id}")
-  public List<ScheduleSlotDto> getByTherapist(@PathVariable Long id) {
-    return scheduleService.getScheduleForTherapist(id);
+  public List<ScheduleSlotDto> getByTherapist(
+      @PathVariable Long id,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate date) {
+    return scheduleService.getScheduleForTherapist(id, date);
   }
 
   @GetMapping("/student/{id}")
-  public List<ScheduleSlotDto> getByStudent(@PathVariable Long id) {
-    return scheduleService.getScheduleForStudentDto(id);
+  public List<ScheduleSlotDto> getByStudent(
+      @PathVariable Long id,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate date) {
+    return scheduleService.getScheduleForStudentDto(id, date);
   }
 
   @GetMapping("/class/{id}")
-  public List<ScheduleSlotDto> getByClass(@PathVariable Long id) {
-    return scheduleService.getScheduleForClassDto(id);
+  public List<ScheduleSlotDto> getByClass(
+      @PathVariable Long id,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate date) {
+    return scheduleService.getScheduleForClassDto(id, date);
   }
 
   @PutMapping("/{id}")

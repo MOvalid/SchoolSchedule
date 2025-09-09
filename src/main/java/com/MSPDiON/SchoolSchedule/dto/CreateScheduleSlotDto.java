@@ -11,9 +11,7 @@ public class CreateScheduleSlotDto {
   private String title;
 
   private Long therapistId;
-
   private Long studentId;
-
   private Long studentClassId;
 
   private List<@NotNull(message = "Id ucznia nie może być null") Long> studentIds;
@@ -33,4 +31,15 @@ public class CreateScheduleSlotDto {
       regexp = "^([01]\\d|2[0-3]):([0-5]\\d)$",
       message = "Godzina zakończenia musi być w formacie HH:mm")
   private String endTime;
+
+  @Pattern(
+      regexp = "^\\d{4}-\\d{2}-\\d{2}$",
+      message = "Data obowiązywania slotu (validFrom) musi być w formacie yyyy-MM-dd")
+  @NotNull(message = "Data rozpoczęcia obowiązywania slotu jest wymagana")
+  private String validFrom;
+
+  @Pattern(
+      regexp = "^\\d{4}-\\d{2}-\\d{2}$",
+      message = "Data zakończenia obowiązywania slotu (validTo) musi być w formacie yyyy-MM-dd")
+  private String validTo; // opcjonalne, null = bez ograniczeń
 }

@@ -25,7 +25,7 @@ interface SlotDetailsManagerProps {
         slot: Slot,
         formValues: SlotFormValues,
         options?: { onSuccess?: () => void; onError?: (error: unknown) => void }
-    ) => Promise<void>;
+    ) => void;
     deleteSlot: (slot: Slot, applyToAll: boolean) => void;
     formValues: SlotFormValues | null;
     setFormValues: Dispatch<SetStateAction<SlotFormValues>>;
@@ -40,6 +40,8 @@ const mapBackendErrorsToFormFields = (errors: Record<string, string>): Record<st
         title: 'title',
         start: 'start',
         end: 'end',
+        validFrom: 'validFrom',
+        validTo: 'validTo',
     };
     const result: Record<string, string> = {};
     for (const key in errors) {
@@ -83,6 +85,8 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
             studentIds: slot.studentIds ?? [studentId],
             studentClassId: slot.studentClassId,
             applyToAll: true,
+            validFrom: slot.validFrom ?? '',
+            validTo: slot.validTo ?? '',
         });
         setFieldErrors({});
         setEditOpen(true);
@@ -114,13 +118,13 @@ const SlotDetailsManager: React.FC<SlotDetailsManagerProps> = ({
     const handleSave = async () => {
         if (selectedSlot && formValues) {
             setSaving(true);
-            await editSlot(selectedSlot, formValues, {
+            editSlot(selectedSlot, formValues, {
                 onSuccess: () => {
                     handleClose();
                     setSaving(false);
                 },
                 onError: (err: unknown) => {
-                    console.log('Error saving slot:', err);
+                    console.error('Error saving slot:', err);
                     handleError(err);
                     setSaving(false);
                 },

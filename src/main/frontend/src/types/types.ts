@@ -61,6 +61,8 @@ export interface Slot {
     studentClassId?: number;
     start: string; // ISO format, np. "2025-01-06T09:00:00"
     end: string;
+    validFrom: string;
+    validTo?: string;
 }
 
 export interface SlotFormValues {
@@ -73,6 +75,8 @@ export interface SlotFormValues {
     studentIds: number[];
     studentClassId?: number;
     applyToAll: boolean;
+    validFrom: string;
+    validTo?: string;
 }
 
 export interface ScheduleSlotDto {
@@ -95,6 +99,9 @@ export interface ScheduleSlotDto {
     studentClass?: StudentClassDto;
 
     isIndividual?: boolean;
+
+    validFrom: string;
+    validTo?: string;
 }
 
 export interface ApiResponse<T> {

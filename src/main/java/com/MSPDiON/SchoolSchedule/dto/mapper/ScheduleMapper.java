@@ -1,5 +1,8 @@
 package com.MSPDiON.SchoolSchedule.dto.mapper;
 
+import static com.MSPDiON.SchoolSchedule.utils.DateUtils.parseToLocalDate;
+import static com.MSPDiON.SchoolSchedule.utils.DateUtils.parseToLocalTime;
+
 import com.MSPDiON.SchoolSchedule.dto.CreateScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.dto.ScheduleSlotDto;
 import com.MSPDiON.SchoolSchedule.exception.ConflictException;
@@ -9,9 +12,8 @@ import com.MSPDiON.SchoolSchedule.repository.StudentClassRepository;
 import com.MSPDiON.SchoolSchedule.repository.StudentRepository;
 import com.MSPDiON.SchoolSchedule.repository.TherapistRepository;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +49,12 @@ public class ScheduleMapper {
     LocalTime start = parseToLocalTime(dto.getStartTime());
     LocalTime end = parseToLocalTime(dto.getEndTime());
 
+    LocalDate validFrom = parseToLocalDate(dto.getValidFrom());
+    LocalDate validTo =
+        dto.getValidTo() != null && !dto.getValidTo().trim().isEmpty()
+            ? parseToLocalDate(dto.getValidTo())
+            : null;
+
     return ScheduleSlot.builder()
         .id(dto.getId())
         .title(dto.getTitle())
@@ -54,15 +62,13 @@ public class ScheduleMapper {
         .room(room)
         .startTime(start)
         .endTime(end)
+        .validFrom(validFrom)
+        .validTo(validTo)
         .dayOfWeek(DayOfWeek.of(dto.getDayOfWeek()))
         .studentClass(studentClass)
         .students(students)
         .isIndividual(dto.isIndividual())
         .build();
-  }
-
-  public LocalTime parseToLocalTime(String isoDateTime) {
-    return OffsetDateTime.parse(isoDateTime, DateTimeFormatter.ISO_DATE_TIME).toLocalTime();
   }
 
   public ScheduleSlot toEntity(CreateScheduleSlotDto dto) {
@@ -76,6 +82,9 @@ public class ScheduleMapper {
     }
     if (dto.getRoomId() == null) {
       errors.put("room", "Sala jest wymagana");
+    }
+    if (dto.getValidFrom() == null) {
+      errors.put("validFrom", "Data początku obowiązywania jest wymagana");
     }
 
     Therapist therapist = null;
@@ -117,6 +126,12 @@ public class ScheduleMapper {
     LocalTime start = parseToLocalTime(dto.getStartTime());
     LocalTime end = parseToLocalTime(dto.getEndTime());
 
+    LocalDate validFrom = parseToLocalDate(dto.getValidFrom());
+    LocalDate validTo =
+        dto.getValidTo() != null && !dto.getValidTo().trim().isEmpty()
+            ? parseToLocalDate(dto.getValidTo())
+            : null;
+
     return ScheduleSlot.builder()
         .therapist(therapist)
         .room(room)
@@ -125,6 +140,8 @@ public class ScheduleMapper {
         .students(students)
         .startTime(start)
         .endTime(end)
+        .validFrom(validFrom)
+        .validTo(validTo)
         .dayOfWeek(DayOfWeek.of(dto.getDayOfWeek()))
         .isIndividual(students.size() == 1)
         .build();
@@ -148,6 +165,8 @@ public class ScheduleMapper {
         .studentId(singleStudentId)
         .startTime(slot.getStartTime().toString())
         .endTime(slot.getEndTime().toString())
+        .validFrom(slot.getValidFrom().toString())
+        .validTo(slot.getValidTo() != null ? slot.getValidTo().toString() : null)
         .dayOfWeek(slot.getDayOfWeek().getValue())
         .individual(slot.isIndividual())
         .build();

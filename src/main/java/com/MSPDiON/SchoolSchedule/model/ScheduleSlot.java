@@ -2,6 +2,7 @@ package com.MSPDiON.SchoolSchedule.model;
 
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -42,6 +43,11 @@ public class ScheduleSlot {
 
   @Column(nullable = false)
   private boolean isIndividual;
+
+  @Column(nullable = false)
+  private LocalDate validFrom;
+
+  @Column() private LocalDate validTo;
 
   @ManyToOne
   @JoinColumn(name = "student_class_id")

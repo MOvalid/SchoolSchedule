@@ -1,6 +1,7 @@
 package com.MSPDiON.SchoolSchedule.repository;
 
 import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,29 +21,37 @@ public interface ScheduleSlotRepository extends JpaRepository<ScheduleSlot, Long
 
   @Query(
       """
-        SELECT s FROM ScheduleSlot s
-        WHERE s.therapist.id = :therapistId
-        AND s.startTime < :endTime AND s.endTime > :startTime
-    """)
+    SELECT s FROM ScheduleSlot s
+    WHERE s.therapist.id = :therapistId
+      AND s.dayOfWeek = :dayOfWeek
+      AND s.startTime < :endTime
+      AND s.endTime > :startTime
+""")
   List<ScheduleSlot> findConflictsByTherapist(
-      Long therapistId, LocalTime startTime, LocalTime endTime);
+      Long therapistId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime);
 
   @Query(
       """
-        SELECT s FROM ScheduleSlot s
-        WHERE s.room.id = :roomId
-        AND s.startTime < :endTime AND s.endTime > :startTime
-    """)
-  List<ScheduleSlot> findConflictsByRoom(Long roomId, LocalTime startTime, LocalTime endTime);
+    SELECT s FROM ScheduleSlot s
+    WHERE s.room.id = :roomId
+      AND s.dayOfWeek = :dayOfWeek
+      AND s.startTime < :endTime
+      AND s.endTime > :startTime
+""")
+  List<ScheduleSlot> findConflictsByRoom(
+      Long roomId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime);
 
   @Query(
       """
-        SELECT s FROM ScheduleSlot s
-        JOIN s.students st
-        WHERE st.id = :studentId
-        AND s.startTime < :endTime AND s.endTime > :startTime
-    """)
-  List<ScheduleSlot> findConflictsByStudent(Long studentId, LocalTime startTime, LocalTime endTime);
+    SELECT s FROM ScheduleSlot s
+    JOIN s.students st
+    WHERE st.id = :studentId
+      AND s.dayOfWeek = :dayOfWeek
+      AND s.startTime < :endTime
+      AND s.endTime > :startTime
+""")
+  List<ScheduleSlot> findConflictsByStudent(
+      Long studentId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime);
 
   @Query(
       """

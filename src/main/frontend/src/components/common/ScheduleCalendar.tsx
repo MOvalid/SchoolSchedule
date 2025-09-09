@@ -10,6 +10,7 @@ import { EntityTypes } from '../../types/enums/entityTypes';
 import { useTheme } from '@mui/material/styles';
 import { getCalendarStyles } from '../../styles/calendar.styles';
 import { Box } from '@mui/material';
+import { Spinner } from '../common/Spinner';
 
 interface Props {
     events: Slot[];
@@ -20,6 +21,7 @@ interface Props {
     onEventClick: (arg: EventClickArg) => void;
     onDateClick: (arg: DateClickArg) => void;
     entityType: EntityTypes;
+    loading?: boolean;
 }
 
 export const formatSlotTitle = (
@@ -66,6 +68,7 @@ const ScheduleCalendar: React.FC<Props> = ({
     onEventClick,
     onDateClick,
     entityType,
+    loading = false,
 }) => {
     const calendarRef = useRef<FullCalendar>(null);
     const theme = useTheme();
@@ -84,7 +87,8 @@ const ScheduleCalendar: React.FC<Props> = ({
     );
 
     return (
-        <Box id="calendar-container" sx={getCalendarStyles(theme)}>
+        <Box id="calendar-container" sx={{ position: 'relative', ...getCalendarStyles(theme) }}>
+            <Spinner isLoading={loading} />
             <FullCalendar
                 ref={calendarRef}
                 plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}

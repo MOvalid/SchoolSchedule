@@ -42,6 +42,7 @@ const createUTCDateTime = (mondayUTC: Date, dayOfWeek: number, timeStr: string):
 /**
  * Konwertuje obiekt DTO z backendu (ScheduleSlotDto) na obiekt Slot używany w frontendzie.
  * Generuje unikalne ID dla FullCalendar oraz przekształca daty start i end do ISO UTC.
+ * Uwzględnia pola validFrom i validTo.
  *
  * @param {ScheduleSlotDto} slot - Obiekt z backendu do konwersji
  * @returns {Slot} Obiekt gotowy do użycia w frontendzie / FullCalendar
@@ -58,12 +59,15 @@ export const convertScheduleSlotDto = (slot: ScheduleSlotDto): Slot => {
         roomId: slot.roomId,
         studentIds: slot.studentIds,
         studentClassId: slot.studentClassId,
+        validFrom: slot.validFrom,
+        validTo: slot.validTo,
     };
 };
 
 /**
  * Konwertuje wartości formularza frontendowego (SlotFormValues) na DTO do wysłania na backend.
  * Wyciąga dzień tygodnia z daty startu.
+ * Uwzględnia pola validFrom i validTo.
  *
  * @param {SlotFormValues} formValues - Wartości formularza do konwersji
  * @returns {ScheduleSlotDto} Obiekt DTO gotowy do wysłania na backend
@@ -78,5 +82,7 @@ export const convertFormValuesToScheduleSlotDto = (formValues: SlotFormValues): 
         roomId: formValues.roomId,
         studentIds: formValues.studentIds,
         studentClassId: formValues.studentClassId,
+        validFrom: formValues.validFrom,
+        validTo: formValues.validTo,
     };
 };

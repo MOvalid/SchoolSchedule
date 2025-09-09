@@ -21,7 +21,7 @@ import {
     StudentDto,
     StudentClassDto,
 } from '../../types/types';
-import { toISOTime } from '../../utils/DateUtils';
+import { getDateFromISO, getTimeFromISO, toISOTime } from '../../utils/DateUtils';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import SearchSelect from '../common/SearchSelect';
 import ConfirmDeleteActions from '../common/ConfirmDeleteActions';
@@ -81,7 +81,9 @@ const SlotDialog: React.FC<Props> = ({
         updateField(field, toISOTime(datePart, value));
     };
 
-    const getTimeFromISO = (iso: string) => iso.slice(11, 16);
+    const handleDateChange = (field: 'validFrom' | 'validTo', value: string) => {
+        updateField(field, value);
+    };
 
     const therapistItems = therapists.map((t) => ({
         id: t.id!,
@@ -159,6 +161,29 @@ const SlotDialog: React.FC<Props> = ({
                         onChange={(e) => handleTimeChange('end', e.target.value)}
                         error={!!getFieldError('end')}
                         helperText={getFieldError('end')}
+                    />
+                    <TextField
+                        label="Data obowiązywania - od"
+                        type="date"
+                        fullWidth
+                        margin="dense"
+                        value={getDateFromISO(formValues.validFrom) || ''}
+                        onChange={(e) => handleDateChange('validFrom', e.target.value)}
+                        slotProps={{
+                            inputLabel: { shrink: true },
+                        }}
+                    />
+
+                    <TextField
+                        label="Data obowiązywania - do"
+                        type="date"
+                        fullWidth
+                        margin="dense"
+                        value={getDateFromISO(formValues.validTo) || ''}
+                        onChange={(e) => handleDateChange('validTo', e.target.value)}
+                        slotProps={{
+                            inputLabel: { shrink: true },
+                        }}
                     />
 
                     {showStudentSelect && (

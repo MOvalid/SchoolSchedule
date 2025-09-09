@@ -1,38 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, SxProps, Theme } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useLocation } from 'react-router-dom';
-import {
-    Slot,
-    SlotFormValues,
-    StudentDto,
-    TherapistDto,
-    RoomDto,
-    StudentClassDto,
-} from '../../types/types';
+import { StudentDto, TherapistDto, RoomDto, StudentClassDto, Slot } from '../../types/types';
 import { EntityTypes } from '../../types/enums/entityTypes';
-import {
-    useClearSchedule,
-    useCreateScheduleSlot,
-    useDeleteScheduleSlotForAll,
-    useDeleteScheduleSlotForEntity,
-    useSchedule,
-    useUpdateScheduleSlotForAll,
-    useUpdateScheduleSlotForEntity,
-} from '../../hooks/useSchedules';
-import { getAllStudents } from '../../services/StudentService';
-import { getAllTherapists } from '../../services/TherapistService';
-import { getAllRooms } from '../../services/RoomService';
-import {
-    convertFormValuesToScheduleSlotDto,
-    convertScheduleSlotDto,
-} from '../../utils/ScheduleSlotConverter';
-import { DateClickArg } from '@fullcalendar/interaction';
-import { EventClickArg } from '@fullcalendar/core';
 import ActionButtons from '../common/ActionButtons';
 import ScheduleCalendar from '../common/ScheduleCalendar';
 import SlotDetailsManager from '../slots/SlotDetailsManager';
-import { getAllClasses } from '../../services/StudentClassService';
 import ConfirmDialog from '../common/ConfirmDialog';
+import { useScheduleWithDate } from '../../hooks/useSchedules';
+import { useSlotManager } from '../../hooks/useSlotManager';
+import { getAllRooms } from '../../services/RoomService';
+import { getAllTherapists } from '../../services/TherapistService';
+import { getAllStudents } from '../../services/StudentService';
+import { getAllClasses } from '../../services/StudentClassService';
+import dayjs, { Dayjs } from 'dayjs';
+import { DateClickArg } from '@fullcalendar/interaction';
+import { EventClickArg } from '@fullcalendar/core';
 
 interface LocationState {
     entityType: EntityTypes;
@@ -40,74 +24,39 @@ interface LocationState {
     name: string;
 }
 
+const calendarHeaderStyles: SxProps<Theme> = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    mb: 2,
+};
+
 export const ScheduleCalendarPage: React.FC = () => {
     const location = useLocation();
     const { entityType, entityId, name } = location.state as LocationState;
 
-    const [events, setEvents] = useState<Slot[]>([]);
-    const [editMode, setEditMode] = useState(false);
-    const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-    const [formValues, setFormValues] = useState<SlotFormValues>({
-        title: '',
-        start: '',
-        end: '',
-        therapistId: undefined,
-        roomId: undefined,
-        studentIds: [],
-        studentClassId: undefined,
-        applyToAll: true,
-    });
     const [therapists, setTherapists] = useState<TherapistDto[]>([]);
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [students, setStudents] = useState<StudentDto[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClassDto[]>([]);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+    const [editMode, setEditMode] = useState(false);
 
-    const { data: rawSchedule = [], isLoading, error } = useSchedule(entityType, entityId);
-    const createSlot = useCreateScheduleSlot(entityType, entityId);
-    const updateSlotForAll = useUpdateScheduleSlotForAll(entityType, entityId);
-    const updateSlotForEntity = useUpdateScheduleSlotForEntity(entityType, entityId);
-    const deleteSlotForAll = useDeleteScheduleSlotForAll(entityType, entityId);
-    const clearSchedule = useClearSchedule(entityType, entityId);
-    const deleteSlotForEntity = useDeleteScheduleSlotForEntity(entityType, entityId);
-
-    const handleSlotSave = async (
-        slot: Slot,
-        values: SlotFormValues,
-        options?: { onSuccess?: () => void; onError?: (error: unknown) => void }
-    ) => {
-        const dto = convertFormValuesToScheduleSlotDto(values);
-
-        if (slot.slotId) {
-            if (values.applyToAll) {
-                updateSlotForAll.mutate(
-                    { id: slot.slotId, data: dto },
-                    { onSuccess: options?.onSuccess, onError: options?.onError }
-                );
-            } else {
-                updateSlotForEntity.mutate(
-                    { id: slot.slotId, entityId, data: dto },
-                    { onSuccess: options?.onSuccess, onError: options?.onError }
-                );
-            }
-        } else {
-            createSlot.mutate(
-                { entityId, data: dto },
-                { onSuccess: options?.onSuccess, onError: options?.onError }
-            );
-        }
-    };
-
-    const handleDeleteSlot = (slot: Slot, applyToAll: boolean) => {
-        if (!slot.slotId) return;
-        if (applyToAll) deleteSlotForAll.mutate({ id: slot.slotId });
-        else deleteSlotForEntity.mutate({ id: slot.slotId, entityId });
-    };
+    const { events, isLoading, error } = useScheduleWithDate(entityType, entityId, selectedDate);
+    const {
+        selectedSlot,
+        setSelectedSlot,
+        formValues,
+        setFormValues,
+        handleSlotSave,
+        handleDeleteSlot,
+        handleClearSchedule,
+    } = useSlotManager(entityType, entityId);
 
     const handleEventClick = (arg: EventClickArg) => {
         const event = events.find((e) => e.id === arg.event.id);
         if (!event) return;
-
         setSelectedSlot(event);
         setFormValues({
             title: event.title || '',
@@ -118,6 +67,8 @@ export const ScheduleCalendarPage: React.FC = () => {
             studentIds: event.studentIds ?? (entityType === EntityTypes.Student ? [entityId] : []),
             studentClassId: event.studentClassId,
             applyToAll: true,
+            validFrom: event.validFrom ?? '',
+            validTo: event.validTo ?? '',
         });
 
         if (editMode) {
@@ -127,11 +78,10 @@ export const ScheduleCalendarPage: React.FC = () => {
 
     const handleDateClick = (arg: DateClickArg) => {
         if (!editMode) return;
-
         const startDateTime = arg.dateStr;
         const endDateTime = new Date(arg.date);
         endDateTime.setHours(endDateTime.getHours() + 1);
-
+        const today = dayjs().format('YYYY-MM-DD');
         const newSlot: Slot = {
             id: `new-${Date.now()}`,
             title: '',
@@ -140,8 +90,9 @@ export const ScheduleCalendarPage: React.FC = () => {
             therapistId: undefined,
             studentIds: entityType === EntityTypes.Student ? [entityId] : [],
             studentClassId: undefined,
+            validFrom: today,
+            validTo: '',
         };
-
         setSelectedSlot(newSlot);
         setFormValues({
             title: '',
@@ -152,29 +103,11 @@ export const ScheduleCalendarPage: React.FC = () => {
             studentIds: entityType === EntityTypes.Student ? [entityId] : [],
             studentClassId: undefined,
             applyToAll: true,
+            validFrom: today,
+            validTo: '',
         });
 
         setTimeout(() => document.dispatchEvent(new CustomEvent('openSlotDialog')), 0);
-    };
-
-    const handleClearSchedule = () => {
-        setConfirmOpen(true); // otwiera dialog
-    };
-
-    const handleConfirmClear = () => {
-        clearSchedule.mutate(
-            { id: entityId, entityType },
-            {
-                onSuccess: () => {
-                    setEvents([]);
-                    setConfirmOpen(false);
-                },
-                onError: () => {
-                    alert('Błąd podczas czyszczenia grafiku.');
-                    setConfirmOpen(false);
-                },
-            }
-        );
     };
 
     useEffect(() => {
@@ -184,11 +117,6 @@ export const ScheduleCalendarPage: React.FC = () => {
         getAllClasses().then((res) => setStudentClasses(res.data));
     }, [entityType]);
 
-    useEffect(() => {
-        setEvents(rawSchedule.map(convertScheduleSlotDto));
-    }, [rawSchedule]);
-
-    if (isLoading) return <Typography>Ładowanie grafiku...</Typography>;
     if (error)
         return <Typography color="error">Błąd ładowania grafiku: {error.message}</Typography>;
 
@@ -198,11 +126,19 @@ export const ScheduleCalendarPage: React.FC = () => {
                 Grafik: {name}
             </Typography>
 
-            <ActionButtons
-                editMode={editMode}
-                setEditMode={setEditMode}
-                onClearSchedule={handleClearSchedule}
-            />
+            <Box sx={calendarHeaderStyles}>
+                <ActionButtons
+                    editMode={editMode}
+                    setEditMode={setEditMode}
+                    onClearSchedule={() => setConfirmOpen(true)}
+                />
+                <DatePicker
+                    label="Wybierz datę"
+                    value={selectedDate}
+                    onChange={(newDate) => newDate && setSelectedDate(newDate)}
+                    slotProps={{ textField: { size: 'small' } }}
+                />
+            </Box>
 
             <ConfirmDialog
                 open={confirmOpen}
@@ -210,7 +146,10 @@ export const ScheduleCalendarPage: React.FC = () => {
                 description="Czy na pewno chcesz wyczyścić cały grafik? Tej operacji nie można cofnąć."
                 confirmText="Wyczyść"
                 confirmColor="error"
-                onConfirm={handleConfirmClear}
+                onConfirm={() => {
+                    handleClearSchedule();
+                    setConfirmOpen(false);
+                }}
                 onCancel={() => setConfirmOpen(false)}
             />
 
@@ -223,6 +162,7 @@ export const ScheduleCalendarPage: React.FC = () => {
                 onEventClick={handleEventClick}
                 onDateClick={handleDateClick}
                 entityType={entityType}
+                loading={isLoading}
             />
 
             <SlotDetailsManager

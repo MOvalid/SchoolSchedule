@@ -113,9 +113,27 @@ public class DataInitializer {
               .room(room1)
               .isIndividual(true)
               .students(Set.of(student1, student2))
+              .validFrom(java.time.LocalDate.now())
+              .validTo(null)
               .build();
 
       scheduleSlotRepository.saveAll(List.of(slot1));
+
+      ScheduleSlot slot2 =
+          ScheduleSlot.builder()
+              .dayOfWeek(java.time.DayOfWeek.TUESDAY)
+              .title("Slot z datą końcową")
+              .startTime(LocalTime.of(11, 0))
+              .endTime(LocalTime.of(12, 0))
+              .therapist(therapist2)
+              .room(room2)
+              .isIndividual(true)
+              .students(Set.of(student1))
+              .validFrom(java.time.LocalDate.now())
+              .validTo(java.time.LocalDate.now().plusMonths(3))
+              .build();
+
+      scheduleSlotRepository.save(slot2);
 
       log.info("Database initialized with mock data.");
     };

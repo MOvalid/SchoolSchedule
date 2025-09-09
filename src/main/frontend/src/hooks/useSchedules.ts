@@ -11,31 +11,34 @@ import {
     updateScheduleSlot,
     updateStudentScheduleSlot,
 } from '../services/ScheduleService';
-import { ScheduleSlotDto } from '../types/types';
+import { ScheduleSlotDto, Slot } from '../types/types';
 import { EntityTypes } from '../types/enums/entityTypes';
 import { AxiosError } from 'axios';
 import { useSnackbar } from '../context/SnackbarContext';
+import { Dayjs } from 'dayjs';
+import { useEffect, useState } from 'react';
+import { convertScheduleSlotDto } from '../utils/ScheduleSlotConverter';
 
 type OnErrorFn = (message: string) => void;
 
 export const useSchedules = () =>
     useQuery({ queryKey: ['schedules'], queryFn: async () => (await getAllScheduleSlots()).data });
 
-export const useSchedule = (entityType: EntityTypes, entityId: number) =>
+export const useSchedule = (entityType: EntityTypes, entityId: number, date?: string) =>
     useQuery<ScheduleSlotDto[], Error>({
-        queryKey: ['schedule', entityType, entityId],
+        queryKey: ['schedule', entityType, entityId, date],
         queryFn: async () => {
             switch (entityType) {
                 case EntityTypes.Student: {
-                    const res = await getScheduleForStudent(entityId);
+                    const res = await getScheduleForStudent(entityId, date);
                     return res.data;
                 }
                 case EntityTypes.Therapist: {
-                    const res = await getScheduleForTherapist(entityId);
+                    const res = await getScheduleForTherapist(entityId, date);
                     return res.data;
                 }
                 case EntityTypes.Class: {
-                    const res = await getScheduleForClass(entityId);
+                    const res = await getScheduleForClass(entityId, date);
                     return res.data;
                 }
                 default: {
@@ -45,6 +48,31 @@ export const useSchedule = (entityType: EntityTypes, entityId: number) =>
         },
         enabled: !!entityId && !!entityType,
     });
+
+export const useScheduleWithDate = (
+    entityType: EntityTypes,
+    entityId: number,
+    selectedDate: Dayjs
+) => {
+    const {
+        data: rawSchedule = [],
+        isLoading,
+        error,
+        refetch,
+    } = useSchedule(entityType, entityId, selectedDate.format('YYYY-MM-DD'));
+
+    const [events, setEvents] = useState<Slot[]>([]);
+
+    useEffect(() => {
+        setEvents(rawSchedule.map(convertScheduleSlotDto));
+    }, [rawSchedule]);
+
+    useEffect(() => {
+        if (entityId && entityType) refetch();
+    }, [selectedDate, entityId, entityType, refetch]);
+
+    return { events, isLoading, error, refetch };
+};
 
 function useScheduleSlotMutation<TVariables, TResult = unknown>(
     mutationFn: (variables: TVariables) => Promise<TResult>,
