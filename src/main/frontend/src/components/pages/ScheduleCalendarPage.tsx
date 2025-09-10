@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, SxProps, Theme } from '@mui/material';
+import { Box, Button, SxProps, Theme, Typography } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-    StudentDto,
-    TherapistDto,
     RoomDto,
-    StudentClassDto,
     Slot,
+    StudentClassDto,
+    StudentDto,
     TherapistAvailabilityDto,
+    TherapistDto,
 } from '../../types/types';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import ActionButtons from '../common/ActionButtons';
@@ -26,6 +26,7 @@ import { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
 import { findTherapistById } from '../../utils/ScheduleSlotConverter';
 import { useSnackbar } from '../../context/SnackbarContext';
+import { getTimeFromISO } from '../../utils/DateUtils';
 
 interface LocationState {
     entityType: EntityTypes;
@@ -33,11 +34,14 @@ interface LocationState {
     name: string;
 }
 
-const calendarHeaderStyles: SxProps<Theme> = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    mb: 2,
+const styles: Record<string, SxProps<Theme>> = {
+    calendarHeaderStyles: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 2,
+    },
+    innerCalendarHeaderStyles: { display: 'flex', gap: 1, alignItems: 'center' },
 };
 
 export const ScheduleCalendarPage: React.FC = () => {
@@ -48,13 +52,12 @@ export const ScheduleCalendarPage: React.FC = () => {
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [students, setStudents] = useState<StudentDto[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClassDto[]>([]);
-    const [therapistAvailabilities, setTherapistAvailabilities] = useState<
-        TherapistAvailabilityDto[]
-    >([]);
+    const [availabilities, setAvailabilities] = useState<TherapistAvailabilityDto[]>([]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [editMode, setEditMode] = useState(false);
     const snackbar = useSnackbar();
+    const navigate = useNavigate();
 
     const { events, isLoading, error } = useScheduleWithDate(entityType, entityId, selectedDate);
     const {
@@ -89,27 +92,28 @@ export const ScheduleCalendarPage: React.FC = () => {
         }
     };
 
-    const checkTherapistAvailability = (arg: DateClickArg) => {
+    const checkAvailability = (arg: DateClickArg): boolean => {
         const clickedDay = arg.date.getDay();
-        const clickedTime = arg.date.toTimeString().slice(0, 5);
-
-        return therapistAvailabilities.some((a) => {
-            return (
-                a.dayOfWeek === clickedDay && clickedTime >= a.startTime && clickedTime < a.endTime
-            );
+        const isoString = arg.date.toISOString();
+        const clickedTime = getTimeFromISO(isoString);
+        return availabilities.some(({ dayOfWeek, startTime, endTime }) => {
+            return dayOfWeek === clickedDay && clickedTime >= startTime && clickedTime < endTime;
         });
     };
 
     const handleDateClick = (arg: DateClickArg) => {
         if (!editMode) return;
-        const isWithinAvailability = checkTherapistAvailability(arg);
-        if (!isWithinAvailability) {
-            snackbar.showSnackbar(
-                'Nie możesz dodać zajęć poza godzinami dostępności terapeuty.',
-                'warning'
-            );
-            return;
+        if (entityType === EntityTypes.Therapist) {
+            const isWithinAvailability = checkAvailability(arg);
+            if (!isWithinAvailability) {
+                snackbar.showSnackbar(
+                    'Nie możesz dodać zajęć poza godzinami dostępności terapeuty.',
+                    'warning'
+                );
+                return;
+            }
         }
+
         const startDateTime = arg.dateStr;
         const endDateTime = new Date(arg.date);
         endDateTime.setHours(endDateTime.getHours() + 1);
@@ -151,10 +155,7 @@ export const ScheduleCalendarPage: React.FC = () => {
                     res.data,
                     entityType === EntityTypes.Therapist ? entityId : -1
                 );
-                console.log(therapist);
-                setTherapistAvailabilities(
-                    therapist?.availabilities || ([] as TherapistAvailabilityDto[])
-                );
+                setAvailabilities(therapist?.availabilities || ([] as TherapistAvailabilityDto[]));
             }
         });
         getAllStudents().then((res) => setStudents(res.data));
@@ -162,8 +163,8 @@ export const ScheduleCalendarPage: React.FC = () => {
     }, [entityType, entityId]);
 
     useEffect(() => {
-        console.log(therapistAvailabilities);
-    }, [therapistAvailabilities]);
+        console.log(availabilities);
+    }, [availabilities]);
 
     if (error)
         return <Typography color="error">Błąd ładowania grafiku: {error.message}</Typography>;
@@ -173,19 +174,29 @@ export const ScheduleCalendarPage: React.FC = () => {
             <Typography variant="h5" gutterBottom>
                 Grafik: {name}
             </Typography>
-
-            <Box sx={calendarHeaderStyles}>
+            <Box sx={styles.calendarHeaderStyles}>
                 <ActionButtons
                     editMode={editMode}
                     setEditMode={setEditMode}
                     onClearSchedule={() => setConfirmOpen(true)}
                 />
-                <DatePicker
-                    label="Wybierz datę"
-                    value={selectedDate}
-                    onChange={(newDate) => newDate && setSelectedDate(newDate)}
-                    slotProps={{ textField: { size: 'small' } }}
-                />
+
+                <Box sx={styles.innerCalendarHeaderStyles}>
+                    {entityType === EntityTypes.Therapist && (
+                        <Button
+                            variant="contained"
+                            onClick={() => navigate(`/therapists/${entityId}/availabilities`)}
+                        >
+                            Zarządzaj dostępnością
+                        </Button>
+                    )}
+                    <DatePicker
+                        label="Data obowiązywania"
+                        value={selectedDate}
+                        onChange={(newDate) => newDate && setSelectedDate(newDate)}
+                        slotProps={{ textField: { size: 'small' } }}
+                    />
+                </Box>
             </Box>
 
             <ConfirmDialog
@@ -206,7 +217,7 @@ export const ScheduleCalendarPage: React.FC = () => {
                 therapists={therapists}
                 students={students}
                 studentClasses={studentClasses}
-                availabilities={therapistAvailabilities}
+                availabilities={availabilities}
                 editMode={editMode}
                 onEventClick={handleEventClick}
                 onDateClick={handleDateClick}

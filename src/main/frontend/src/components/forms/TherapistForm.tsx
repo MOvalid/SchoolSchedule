@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Box,
+    Button,
     Checkbox,
     FormControl,
     FormHelperText,
@@ -21,6 +22,7 @@ import { Department, DepartmentLabels } from '../../types/enums/department';
 import { TherapistRole, TherapistRoleLabels } from '../../types/enums/therapistRole';
 import { CreateTherapistDto, TherapistDto } from '../../types/types';
 import { Spinner } from '../common/Spinner';
+import { useNavigate } from 'react-router-dom';
 
 const styles: Record<string, SxProps<Theme>> = {
     buttonBox: {
@@ -30,6 +32,12 @@ const styles: Record<string, SxProps<Theme>> = {
     },
     button: {
         width: '40%',
+    },
+    formHeaderBox: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 2,
     },
 };
 
@@ -43,6 +51,7 @@ interface TherapistFormProps {
 }
 
 const TherapistForm: React.FC<TherapistFormProps> = ({ mode, initialData, onSuccess }) => {
+    const navigate = useNavigate();
     const {
         formValues,
         errors,
@@ -87,11 +96,20 @@ const TherapistForm: React.FC<TherapistFormProps> = ({ mode, initialData, onSucc
         setIsLoading(isFormLoading);
     }, [isFormLoading]);
 
-    if (isLoading) return <Spinner fullScreen />;
-
     return (
         <>
-            <FormHeader mode={mode} entityName="terapeutę" />
+            <Spinner isLoading={isLoading} />
+            <Box sx={styles.formHeaderBox}>
+                <FormHeader mode={mode} entityName="terapeutę" />
+                {mode === 'edit' && initialData?.id && (
+                    <Button
+                        variant="outlined"
+                        onClick={() => navigate(`/therapists/${initialData.id}/availabilities`)}
+                    >
+                        Zarządzaj dostępnością
+                    </Button>
+                )}
+            </Box>
 
             <TextField
                 fullWidth

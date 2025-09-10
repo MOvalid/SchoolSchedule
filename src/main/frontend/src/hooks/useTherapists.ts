@@ -4,6 +4,7 @@ import {
     createTherapist,
     updateTherapist,
     deleteTherapist,
+    getTherapistById,
 } from '../services/TherapistService';
 import { CreateTherapistDto, TherapistDto } from '../types/types';
 
@@ -13,6 +14,13 @@ export const useTherapists = () =>
     useQuery({
         queryKey: THERAPISTS_QUERY_KEY,
         queryFn: async () => (await getAllTherapists()).data,
+    });
+
+export const useTherapistById = (id: number) =>
+    useQuery({
+        queryKey: [...THERAPISTS_QUERY_KEY, id],
+        queryFn: async () => (await getTherapistById(id)).data,
+        enabled: !!id,
     });
 
 const useTherapistMutation = <TArgs, TResult = void>(

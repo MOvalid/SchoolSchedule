@@ -11,7 +11,7 @@ interface Props {
 const ActionButtons: React.FC<Props> = ({ editMode, setEditMode, onClearSchedule }) => {
     const navigate = useNavigate();
     return (
-        <Stack direction="row" spacing={2} mb={2}>
+        <Stack direction="row" spacing={2}>
             <Button variant="contained" color="primary" onClick={() => setEditMode(!editMode)}>
                 {editMode ? 'Zakończ edycję' : 'Edytuj'}
             </Button>

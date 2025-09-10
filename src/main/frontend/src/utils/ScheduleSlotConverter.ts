@@ -110,6 +110,5 @@ export const mapAvailabilitiesToEvents = (
         startTime: a.startTime,
         endTime: a.endTime,
         display: 'inverse-background',
-        overlap: false,
     }));
 };

@@ -10,6 +10,7 @@ import LogoHeader from './components/common/LogoHeader';
 import { appBarStyles, mainContentBox, navButtonsBox } from './styles/appBar.styles';
 import EmptyPage from './components/pages/EmptyPage';
 import ImportPage from './components/pages/ImportPage';
+import { ManageAvailabilityPage } from './components/pages/ManageAvailabilityPage';
 
 const AppRoutes = () => (
     <Router>
@@ -52,6 +53,7 @@ const AppRoutes = () => (
                 <Route path="/manage-entity" element={<ManageEntityPage />} />
                 <Route path="/import" element={<ImportPage />} />
                 <Route path="/schedule/:entityType/:entityId" element={<ScheduleCalendarPage />} />
+                <Route path="/therapists/:id/availabilities" element={<ManageAvailabilityPage />} />
 
                 <Route path="*" element={<EmptyPage />} />
             </Routes>
