@@ -1,6 +1,6 @@
 import React from 'react';
 import { TextField, MenuItem } from '@mui/material';
-import { CreateTherapistAvailabilityDto } from '../../types/types';
+import { CreateAvailabilityDto } from '../../types/types';
 
 const daysOfWeekLabels: Record<number, string> = {
     1: 'Poniedziałek',
@@ -13,8 +13,8 @@ const daysOfWeekLabels: Record<number, string> = {
 };
 
 interface AvailabilityFormProps {
-    values: CreateTherapistAvailabilityDto;
-    onChange: (values: CreateTherapistAvailabilityDto) => void;
+    values: CreateAvailabilityDto;
+    onChange: (values: CreateAvailabilityDto) => void;
 }
 
 export const AvailabilityForm: React.FC<AvailabilityFormProps> = ({ values, onChange }) => {

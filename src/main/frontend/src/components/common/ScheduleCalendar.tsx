@@ -9,7 +9,7 @@ import {
     Slot,
     StudentClassDto,
     StudentDto,
-    TherapistAvailabilityDto,
+    AvailabilityDto,
     TherapistDto,
 } from '../../types/types';
 import { EventClickArg } from '@fullcalendar/core';
@@ -25,7 +25,7 @@ interface Props {
     therapists: TherapistDto[];
     students: StudentDto[];
     studentClasses: StudentClassDto[];
-    availabilities?: TherapistAvailabilityDto[];
+    availabilities?: AvailabilityDto[];
     editMode: boolean;
     onEventClick: (arg: EventClickArg) => void;
     onDateClick: (arg: DateClickArg) => void;

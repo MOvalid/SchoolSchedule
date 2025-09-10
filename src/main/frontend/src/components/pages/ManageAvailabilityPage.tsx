@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, IconButton, SxProps, Theme } from '@mui/material';
 import { Delete, Edit, Add } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
-import { TherapistAvailabilityDto, CreateTherapistAvailabilityDto } from '../../types/types';
+import { AvailabilityDto, CreateAvailabilityDto } from '../../types/types';
 import { useSnackbar } from '../../context/SnackbarContext';
 import {
-    useCreateTherapistAvailability,
-    useDeleteTherapistAvailability,
-    useTherapistAvailabilities,
-    useUpdateTherapistAvailability,
-} from '../../hooks/useTherapistsAvailability';
+    useCreateAvailability,
+    useDeleteAvailability,
+    useGetAvailabilities,
+    useUpdateAvailability,
+} from '../../hooks/useAvailabilities';
 import { BaseTable, Column } from '../common/BaseTable';
 import { useTherapistById } from '../../hooks/useTherapists';
+import { useStudentById } from '../../hooks/useStudents';
 import { AvailabilityDialog } from '../common/AvailabilityDialog';
+import { EntityTypes } from '../../types/enums/entityTypes';
 
 const styles: Record<string, SxProps<Theme>> = {
     pageHeader: {
@@ -23,27 +24,35 @@ const styles: Record<string, SxProps<Theme>> = {
     },
 };
 
-export const ManageAvailabilityPage: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
-    const therapistId = Number(id);
+interface ManageAvailabilityPageProps {
+    entityType: EntityTypes;
+    entityId: number;
+}
+
+export const ManageAvailabilityPage: React.FC<ManageAvailabilityPageProps> = ({
+    entityType,
+    entityId,
+}) => {
     const snackbar = useSnackbar();
 
-    const { data: therapist, isLoading: therapistLoading } = useTherapistById(therapistId);
+    const { data: therapist, isLoading: therapistLoading } =
+        entityType === 'THERAPIST' ? useTherapistById(entityId) : { data: null, isLoading: false };
+    const { data: student, isLoading: studentLoading } =
+        entityType === 'STUDENT' ? useStudentById(entityId) : { data: null, isLoading: false };
+
     const {
         data: availabilities,
         isLoading: availabilitiesLoading,
         error,
-    } = useTherapistAvailabilities(therapistId);
+    } = useGetAvailabilities(entityId, entityType);
 
-    const createMutation = useCreateTherapistAvailability(therapistId);
-    const updateMutation = useUpdateTherapistAvailability(therapistId);
-    const deleteMutation = useDeleteTherapistAvailability(therapistId);
+    const createMutation = useCreateAvailability(entityId, entityType);
+    const updateMutation = useUpdateAvailability(entityId, entityType);
+    const deleteMutation = useDeleteAvailability(entityId, entityType);
 
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [editingAvailability, setEditingAvailability] = useState<TherapistAvailabilityDto | null>(
-        null
-    );
-    const [formValues, setFormValues] = useState<CreateTherapistAvailabilityDto>({
+    const [editingAvailability, setEditingAvailability] = useState<AvailabilityDto | null>(null);
+    const [formValues, setFormValues] = useState<CreateAvailabilityDto>({
         dayOfWeek: 1,
         startTime: '09:00',
         endTime: '17:00',
@@ -60,7 +69,7 @@ export const ManageAvailabilityPage: React.FC = () => {
         7: 'Niedziela',
     };
 
-    const handleOpenDialog = (availability?: TherapistAvailabilityDto) => {
+    const handleOpenDialog = (availability?: AvailabilityDto) => {
         if (availability) {
             setEditingAvailability(availability);
             setFormValues({
@@ -83,13 +92,10 @@ export const ManageAvailabilityPage: React.FC = () => {
     const validateHours = () => {
         const [startHour, startMin] = formValues.startTime.split(':').map(Number);
         const [endHour, endMin] = formValues.endTime.split(':').map(Number);
-
         const startDate = new Date();
         startDate.setHours(startHour, startMin, 0, 0);
-
         const endDate = new Date();
         endDate.setHours(endHour, endMin, 0, 0);
-
         return startDate >= endDate;
     };
 
@@ -128,7 +134,7 @@ export const ManageAvailabilityPage: React.FC = () => {
         }
     };
 
-    const columns: Column<TherapistAvailabilityDto>[] = [
+    const columns: Column<AvailabilityDto>[] = [
         {
             key: 'dayOfWeek',
             label: 'Dzień tygodnia',
@@ -155,8 +161,8 @@ export const ManageAvailabilityPage: React.FC = () => {
     ];
 
     useEffect(() => {
-        setIsLoading(therapistLoading || availabilitiesLoading);
-    }, [therapistLoading, availabilitiesLoading]);
+        setIsLoading(therapistLoading || studentLoading || availabilitiesLoading);
+    }, [therapistLoading, studentLoading, availabilitiesLoading]);
 
     if (isLoading) return <Typography>Ładowanie dostępności...</Typography>;
     if (error) return <Typography color="error">Błąd podczas ładowania</Typography>;
@@ -166,13 +172,15 @@ export const ManageAvailabilityPage: React.FC = () => {
         return a.startTime.localeCompare(b.startTime);
     });
 
+    const entityName =
+        entityType === 'THERAPIST'
+            ? `${therapist?.firstName} ${therapist?.lastName}`
+            : `${student?.firstName} ${student?.lastName}`;
+
     return (
         <Box sx={{ p: 4 }}>
             <Box sx={styles.pageHeader}>
-                <Typography variant="h5">
-                    Zarządzanie dostępnością terapeuty: {therapist?.firstName} {therapist?.lastName}
-                </Typography>
-
+                <Typography variant="h5">Zarządzanie dostępnością: {entityName}</Typography>
                 <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenDialog()}>
                     Dodaj dostępność
                 </Button>

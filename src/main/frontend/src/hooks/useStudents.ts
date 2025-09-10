@@ -6,6 +6,7 @@ import {
     deleteStudent,
 } from '../services/StudentService';
 import { CreateStudentDto, StudentDto } from '../types/types';
+import { getStudentById } from '../services/StudentService';
 
 const STUDENTS_QUERY_KEY = ['students'];
 
@@ -13,6 +14,13 @@ export const useStudents = () =>
     useQuery({
         queryKey: STUDENTS_QUERY_KEY,
         queryFn: async () => (await getAllStudents()).data,
+    });
+
+export const useStudentById = (id: number) =>
+    useQuery({
+        queryKey: [...STUDENTS_QUERY_KEY, id],
+        queryFn: async () => (await getStudentById(id)).data,
+        enabled: !!id,
     });
 
 const useStudentMutation = <TArgs, TResult = void>(

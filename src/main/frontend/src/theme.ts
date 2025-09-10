@@ -1,4 +1,4 @@
-import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { createTheme, ThemeOptions, Theme } from '@mui/material/styles';
 import {
     white,
     black,
@@ -73,6 +73,46 @@ const components = {
     MuiDialog: {
         styleOverrides: {
             paper: { borderRadius: 12 },
+        },
+    },
+    MuiTableCell: {
+        styleOverrides: {
+            head: ({ theme }: { theme: Theme }) => ({
+                backgroundColor:
+                    theme.palette.mode === 'light'
+                        ? theme.palette.secondary.main
+                        : theme.palette.secondary.dark,
+                color: theme.palette.getContrastText(
+                    theme.palette.mode === 'light'
+                        ? theme.palette.secondary.main
+                        : theme.palette.secondary.dark
+                ),
+                fontWeight: 700,
+            }),
+            body: ({ theme }: { theme: Theme }) => ({
+                fontSize: '0.95rem',
+                backgroundColor: theme.palette.background.paper,
+                color: theme.palette.text.primary,
+            }),
+        },
+    },
+
+    MuiTableRow: {
+        styleOverrides: {
+            root: ({ theme }: { theme: Theme }) => ({
+                '&:nth-of-type(odd)': {
+                    backgroundColor:
+                        theme.palette.mode === 'light'
+                            ? theme.palette.background.default
+                            : theme.palette.background.paper,
+                },
+                '&:hover': {
+                    backgroundColor:
+                        theme.palette.mode === 'light'
+                            ? theme.palette.primary.main + '10'
+                            : theme.palette.primary.dark + '20',
+                },
+            }),
         },
     },
 };

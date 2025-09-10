@@ -7,7 +7,7 @@ import {
     Slot,
     StudentClassDto,
     StudentDto,
-    TherapistAvailabilityDto,
+    AvailabilityDto,
     TherapistDto,
 } from '../../types/types';
 import { EntityTypes } from '../../types/enums/entityTypes';
@@ -52,7 +52,7 @@ export const ScheduleCalendarPage: React.FC = () => {
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [students, setStudents] = useState<StudentDto[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClassDto[]>([]);
-    const [availabilities, setAvailabilities] = useState<TherapistAvailabilityDto[]>([]);
+    const [availabilities, setAvailabilities] = useState<AvailabilityDto[]>([]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [editMode, setEditMode] = useState(false);
@@ -155,7 +155,7 @@ export const ScheduleCalendarPage: React.FC = () => {
                     res.data,
                     entityType === EntityTypes.Therapist ? entityId : -1
                 );
-                setAvailabilities(therapist?.availabilities || ([] as TherapistAvailabilityDto[]));
+                setAvailabilities(therapist?.availabilities || ([] as AvailabilityDto[]));
             }
         });
         getAllStudents().then((res) => setStudents(res.data));
@@ -182,10 +182,12 @@ export const ScheduleCalendarPage: React.FC = () => {
                 />
 
                 <Box sx={styles.innerCalendarHeaderStyles}>
-                    {entityType === EntityTypes.Therapist && (
+                    {entityType !== EntityTypes.Class && (
                         <Button
                             variant="contained"
-                            onClick={() => navigate(`/therapists/${entityId}/availabilities`)}
+                            onClick={() =>
+                                navigate(`/${entityType.toLowerCase()}/${entityId}/availabilities`)
+                            }
                         >
                             Zarządzaj dostępnością
                         </Button>

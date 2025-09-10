@@ -53,6 +53,7 @@ export const BaseTable = <T extends { id?: number }>({
             return null;
         }
     };
+
     return (
         <TableContainer component={Paper}>
             <Table>
@@ -65,7 +66,7 @@ export const BaseTable = <T extends { id?: number }>({
                                 sx={styles.columnName}
                                 width={col.width}
                             >
-                                {col.label}
+                                {data.length > 0 ? col.label : ''}
                             </TableCell>
                         ))}
                     </TableRow>
@@ -73,18 +74,17 @@ export const BaseTable = <T extends { id?: number }>({
                 <TableBody>
                     {data.length > 0 ? (
                         data.map((row, rowIndex) => (
-                            <TableRow key={row.id ?? rowIndex}>
-                                {columns.map((col) => {
-                                    return (
-                                        <TableCell
-                                            key={String(col.key)}
-                                            align={col.align ?? 'left'}
-                                            width={col.width}
-                                        >
-                                            {renderContent(col, row)}
-                                        </TableCell>
-                                    );
-                                })}
+                            <TableRow key={row.id ?? rowIndex} sx={styles.tableRow}>
+                                {columns.map((col) => (
+                                    <TableCell
+                                        key={String(col.key)}
+                                        align={col.align ?? 'left'}
+                                        width={col.width}
+                                        sx={styles.tableCell}
+                                    >
+                                        {renderContent(col, row)}
+                                    </TableCell>
+                                ))}
                             </TableRow>
                         ))
                     ) : (

@@ -1,6 +1,7 @@
 package com.MSPDiON.SchoolSchedule.dto;
 
 import java.time.LocalTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,5 @@ public class StudentDto {
   private LocalTime arrivalTime;
   private LocalTime departureTime;
   private Long studentClassId;
+  private List<AvailabilityDto> availabilities;
 }

@@ -1,13 +1,13 @@
 import React from 'react';
 import { BaseDialog } from './BaseDialog';
-import { TherapistAvailabilityDto, CreateTherapistAvailabilityDto } from '../../types/types';
+import { AvailabilityDto, CreateAvailabilityDto } from '../../types/types';
 import { AvailabilityForm } from '../forms/AvailabilityForm';
 
 interface AvailabilityDialogProps {
     open: boolean;
-    editingAvailability: TherapistAvailabilityDto | null;
-    formValues: CreateTherapistAvailabilityDto;
-    onChange: (values: CreateTherapistAvailabilityDto) => void;
+    editingAvailability: AvailabilityDto | null;
+    formValues: CreateAvailabilityDto;
+    onChange: (values: CreateAvailabilityDto) => void;
     onClose: () => void;
     onSave: () => void;
 }

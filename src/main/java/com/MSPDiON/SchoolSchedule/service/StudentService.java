@@ -8,6 +8,7 @@ import com.MSPDiON.SchoolSchedule.exception.StudentClassNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.StudentNotFoundException;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
+import com.MSPDiON.SchoolSchedule.repository.AvailabilityRepository;
 import com.MSPDiON.SchoolSchedule.repository.StudentClassRepository;
 import com.MSPDiON.SchoolSchedule.repository.StudentRepository;
 import java.time.LocalTime;
@@ -21,29 +22,42 @@ public class StudentService {
 
   private final StudentRepository studentRepository;
   private final StudentClassRepository studentClassRepository;
+  private final AvailabilityRepository availabilityRepository;
   private final StudentMapper studentMapper;
 
   public List<StudentDto> getAll() {
-    return studentRepository.findAll().stream().map(studentMapper::toDto).toList();
+    return studentRepository.findAll().stream()
+        .map(
+            s ->
+                studentMapper.toDto(
+                    s, availabilityRepository.findByEntityIdAndEntityType(s.getId(), "STUDENT")))
+        .toList();
   }
 
   public List<StudentDto> getAllSortedByLastName() {
     return studentRepository.findAll().stream()
         .sorted((a, b) -> a.getLastName().compareToIgnoreCase(b.getLastName()))
-        .map(studentMapper::toDto)
+        .map(
+            s ->
+                studentMapper.toDto(
+                    s, availabilityRepository.findByEntityIdAndEntityType(s.getId(), "STUDENT")))
         .toList();
   }
 
   public List<StudentDto> getAllByClassId(Long classId) {
     return studentRepository.findByStudentClassId(classId).stream()
-        .map(studentMapper::toDto)
+        .map(
+            s ->
+                studentMapper.toDto(
+                    s, availabilityRepository.findByEntityIdAndEntityType(s.getId(), "STUDENT")))
         .toList();
   }
 
   public StudentDto getById(Long id) {
     Student student =
         studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
-    return studentMapper.toDto(student);
+    return studentMapper.toDto(
+        student, availabilityRepository.findByEntityIdAndEntityType(student.getId(), "STUDENT"));
   }
 
   public StudentDto create(CreateStudentDto dto) {
@@ -60,15 +74,8 @@ public class StudentService {
     }
 
     Student saved = studentRepository.save(student);
-
-    return StudentDto.builder()
-        .id(saved.getId())
-        .firstName(saved.getFirstName())
-        .lastName(saved.getLastName())
-        .arrivalTime(saved.getArrivalTime())
-        .departureTime(saved.getDepartureTime())
-        .studentClassId(saved.getStudentClass() != null ? saved.getStudentClass().getId() : null)
-        .build();
+    return studentMapper.toDto(
+        saved, availabilityRepository.findByEntityIdAndEntityType(saved.getId(), "STUDENT"));
   }
 
   public StudentDto update(Long id, StudentDto dto) {
@@ -77,44 +84,33 @@ public class StudentService {
     Student existing =
         studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
 
-    updateBasicInfo(existing, dto);
-    updateStudentClass(existing, dto);
+    existing.setFirstName(dto.getFirstName());
+    existing.setLastName(dto.getLastName());
+    existing.setArrivalTime(dto.getArrivalTime());
+    existing.setDepartureTime(dto.getDepartureTime());
 
-    Student saved = studentRepository.save(existing);
-    return studentMapper.toDto(saved);
-  }
-
-  public void delete(Long id) {
-    if (!studentRepository.existsById(id)) {
-      throw new StudentNotFoundException(id);
-    }
-    studentRepository.deleteById(id);
-  }
-
-  private void updateBasicInfo(Student student, StudentDto dto) {
-    student.setFirstName(dto.getFirstName());
-    student.setLastName(dto.getLastName());
-    student.setArrivalTime(dto.getArrivalTime());
-    student.setDepartureTime(dto.getDepartureTime());
-  }
-
-  private void updateStudentClass(Student student, StudentDto dto) {
     if (dto.getStudentClassId() != null) {
       StudentClass studentClass =
           studentClassRepository
               .findById(dto.getStudentClassId())
               .orElseThrow(() -> new StudentClassNotFoundException(dto.getStudentClassId()));
-      student.setStudentClass(studentClass);
+      existing.setStudentClass(studentClass);
     } else {
-      student.setStudentClass(null);
+      existing.setStudentClass(null);
     }
+
+    Student updated = studentRepository.save(existing);
+    return studentMapper.toDto(
+        updated, availabilityRepository.findByEntityIdAndEntityType(updated.getId(), "STUDENT"));
+  }
+
+  public void delete(Long id) {
+    studentRepository.deleteById(id);
   }
 
   private void validateTimes(LocalTime arrival, LocalTime departure) {
-    if (arrival != null && departure != null) {
-      if (arrival.isAfter(departure)) {
-        throw new InvalidStudentTimeException();
-      }
+    if (arrival != null && departure != null && arrival.isAfter(departure)) {
+      throw new InvalidStudentTimeException();
     }
   }
 }

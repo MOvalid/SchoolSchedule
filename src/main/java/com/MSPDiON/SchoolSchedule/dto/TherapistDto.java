@@ -18,5 +18,5 @@ public class TherapistDto {
   private String lastName;
   private TherapistRole role;
   private List<Department> departments;
-  private List<TherapistAvailabilityDto> availabilities;
+  private List<AvailabilityDto> availabilities;
 }

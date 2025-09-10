@@ -9,9 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TherapistAvailabilityDto {
+public class AvailabilityDto {
   private Long id;
   private int dayOfWeek;
   private String startTime;
   private String endTime;
+  private String entityType;
+  private Long entityId;
 }

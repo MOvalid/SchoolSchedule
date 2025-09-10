@@ -3,7 +3,7 @@ import {
     ScheduleSlotDto,
     Slot,
     SlotFormValues,
-    TherapistAvailabilityDto,
+    AvailabilityDto,
     TherapistDto,
 } from '../types/types';
 
@@ -102,7 +102,7 @@ export const findTherapistById = (
 };
 
 export const mapAvailabilitiesToEvents = (
-    availabilities: TherapistAvailabilityDto[] | undefined
+    availabilities: AvailabilityDto[] | undefined
 ): BusinessHoursDto[] => {
     if (!availabilities) return [];
     return availabilities.map((a) => ({

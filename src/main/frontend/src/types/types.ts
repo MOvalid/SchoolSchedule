@@ -17,6 +17,7 @@ export interface StudentDto {
     departureTime?: string;
     studentClassId?: number;
     studentClass?: StudentClassDto;
+    availabilities?: AvailabilityDto[];
 }
 
 export interface CreateTherapistDto {
@@ -32,10 +33,10 @@ export interface TherapistDto {
     lastName: string;
     role: TherapistRole;
     departments: Department[];
-    availabilities?: TherapistAvailabilityDto[];
+    availabilities?: AvailabilityDto[];
 }
 
-export interface TherapistAvailabilityDto {
+export interface AvailabilityDto {
     id?: number;
     dayOfWeek: number;
     startTime: string;
@@ -51,7 +52,7 @@ export interface BusinessHoursDto {
     overlap?: boolean;
 }
 
-export interface CreateTherapistAvailabilityDto {
+export interface CreateAvailabilityDto {
     dayOfWeek: number;
     startTime: string;
     endTime: string;

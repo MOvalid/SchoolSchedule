@@ -1,8 +1,9 @@
 package com.MSPDiON.SchoolSchedule.rest;
 
+import com.MSPDiON.SchoolSchedule.dto.AvailabilityDto;
 import com.MSPDiON.SchoolSchedule.dto.CreateTherapistDto;
-import com.MSPDiON.SchoolSchedule.dto.TherapistAvailabilityDto;
 import com.MSPDiON.SchoolSchedule.dto.TherapistDto;
+import com.MSPDiON.SchoolSchedule.service.AvailabilityService;
 import com.MSPDiON.SchoolSchedule.service.TherapistService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class TherapistController {
 
   private final TherapistService therapistService;
+  private final AvailabilityService availabilityService;
 
   @GetMapping
   public List<TherapistDto> getAll() {
@@ -45,28 +47,27 @@ public class TherapistController {
   // ---- Therapist Availability ----
 
   @GetMapping("/{id}/availabilities")
-  public List<TherapistAvailabilityDto> getAvailabilities(@PathVariable Long id) {
-    return therapistService.getAvailabilities(id);
+  public List<AvailabilityDto> getAvailabilities(@PathVariable Long id) {
+    return availabilityService.getAvailabilities(id, "THERAPIST");
   }
 
   @PostMapping("/{id}/availabilities")
-  public ResponseEntity<TherapistAvailabilityDto> addAvailability(
-      @PathVariable Long id, @RequestBody TherapistAvailabilityDto dto) {
-    return ResponseEntity.ok(therapistService.addAvailability(id, dto));
+  public ResponseEntity<AvailabilityDto> addAvailability(
+      @PathVariable Long id, @RequestBody AvailabilityDto dto) {
+    return ResponseEntity.ok(availabilityService.addAvailability(id, "THERAPIST", dto));
   }
 
   @PutMapping("/{id}/availabilities/{availabilityId}")
-  public ResponseEntity<TherapistAvailabilityDto> updateAvailability(
-      @PathVariable Long id,
-      @PathVariable Long availabilityId,
-      @RequestBody TherapistAvailabilityDto dto) {
-    return ResponseEntity.ok(therapistService.updateAvailability(id, availabilityId, dto));
+  public ResponseEntity<AvailabilityDto> updateAvailability(
+      @PathVariable Long id, @PathVariable Long availabilityId, @RequestBody AvailabilityDto dto) {
+    return ResponseEntity.ok(
+        availabilityService.updateAvailability(id, "THERAPIST", availabilityId, dto));
   }
 
   @DeleteMapping("/{id}/availabilities/{availabilityId}")
   public ResponseEntity<Void> deleteAvailability(
       @PathVariable Long id, @PathVariable Long availabilityId) {
-    therapistService.deleteAvailability(id, availabilityId);
+    availabilityService.deleteAvailability(id, "THERAPIST", availabilityId);
     return ResponseEntity.noContent().build();
   }
 }
