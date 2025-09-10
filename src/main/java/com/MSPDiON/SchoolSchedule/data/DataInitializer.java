@@ -6,11 +6,13 @@ import com.MSPDiON.SchoolSchedule.model.ScheduleSlot;
 import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.model.Therapist;
+import com.MSPDiON.SchoolSchedule.model.TherapistAvailability;
 import com.MSPDiON.SchoolSchedule.model.TherapistRole;
 import com.MSPDiON.SchoolSchedule.repository.RoomRepository;
 import com.MSPDiON.SchoolSchedule.repository.ScheduleSlotRepository;
 import com.MSPDiON.SchoolSchedule.repository.StudentClassRepository;
 import com.MSPDiON.SchoolSchedule.repository.StudentRepository;
+import com.MSPDiON.SchoolSchedule.repository.TherapistAvailabilityRepository;
 import com.MSPDiON.SchoolSchedule.repository.TherapistRepository;
 import java.time.LocalTime;
 import java.util.List;
@@ -31,6 +33,7 @@ public class DataInitializer {
       StudentRepository studentRepository,
       StudentClassRepository classRepository,
       TherapistRepository therapistRepository,
+      TherapistAvailabilityRepository therapistAvailabilityRepository,
       RoomRepository roomRepository,
       ScheduleSlotRepository scheduleSlotRepository) {
     return args -> {
@@ -38,6 +41,7 @@ public class DataInitializer {
       studentRepository.deleteAll();
       classRepository.deleteAll();
       therapistRepository.deleteAll();
+      therapistAvailabilityRepository.deleteAll();
       roomRepository.deleteAll();
 
       StudentClass class1A = new StudentClass();
@@ -89,6 +93,32 @@ public class DataInitializer {
               .build();
 
       therapistRepository.saveAll(List.of(therapist1, therapist2));
+
+      TherapistAvailability t1Mon = new TherapistAvailability();
+      t1Mon.setTherapist(therapist1);
+      t1Mon.setDayOfWeek(1);
+      t1Mon.setStartTime(LocalTime.of(9, 0));
+      t1Mon.setEndTime(LocalTime.of(14, 0));
+
+      TherapistAvailability t1Thu = new TherapistAvailability();
+      t1Thu.setTherapist(therapist1);
+      t1Thu.setDayOfWeek(4);
+      t1Thu.setStartTime(LocalTime.of(9, 0));
+      t1Thu.setEndTime(LocalTime.of(14, 0));
+
+      TherapistAvailability t2Tue = new TherapistAvailability();
+      t2Tue.setTherapist(therapist2);
+      t2Tue.setDayOfWeek(2);
+      t2Tue.setStartTime(LocalTime.of(9, 0));
+      t2Tue.setEndTime(LocalTime.of(13, 0));
+
+      TherapistAvailability t2Fri = new TherapistAvailability();
+      t2Fri.setTherapist(therapist2);
+      t2Fri.setDayOfWeek(5);
+      t2Fri.setStartTime(LocalTime.of(9, 0));
+      t2Fri.setEndTime(LocalTime.of(13, 0));
+
+      therapistAvailabilityRepository.saveAll(List.of(t1Mon, t1Thu, t2Tue, t2Fri));
 
       Room room1 = new Room();
       room1.setName("Sala 101");

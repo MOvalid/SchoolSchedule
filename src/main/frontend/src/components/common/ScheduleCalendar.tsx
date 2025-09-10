@@ -4,19 +4,28 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import plLocale from '@fullcalendar/core/locales/pl';
-import { Slot, StudentClassDto, StudentDto, TherapistDto } from '../../types/types';
+import {
+    BusinessHoursDto,
+    Slot,
+    StudentClassDto,
+    StudentDto,
+    TherapistAvailabilityDto,
+    TherapistDto,
+} from '../../types/types';
 import { EventClickArg } from '@fullcalendar/core';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import { useTheme } from '@mui/material/styles';
 import { getCalendarStyles } from '../../styles/calendar.styles';
 import { Box } from '@mui/material';
-import { Spinner } from '../common/Spinner';
+import { Spinner } from './Spinner';
+import { mapAvailabilitiesToEvents } from '../../utils/ScheduleSlotConverter';
 
 interface Props {
     events: Slot[];
     therapists: TherapistDto[];
     students: StudentDto[];
     studentClasses: StudentClassDto[];
+    availabilities?: TherapistAvailabilityDto[];
     editMode: boolean;
     onEventClick: (arg: EventClickArg) => void;
     onDateClick: (arg: DateClickArg) => void;
@@ -62,8 +71,9 @@ export const formatSlotTitle = (
 const ScheduleCalendar: React.FC<Props> = ({
     events,
     therapists,
-    studentClasses,
     students,
+    studentClasses,
+    availabilities,
     editMode,
     onEventClick,
     onDateClick,
@@ -85,6 +95,10 @@ const ScheduleCalendar: React.FC<Props> = ({
         () => Object.fromEntries(studentClasses.map((c) => [c.id, c])),
         [studentClasses]
     );
+
+    const businessHours: BusinessHoursDto[] = useMemo(() => {
+        return mapAvailabilitiesToEvents(availabilities);
+    }, [availabilities]);
 
     return (
         <Box id="calendar-container" sx={{ position: 'relative', ...getCalendarStyles(theme) }}>
@@ -111,6 +125,7 @@ const ScheduleCalendar: React.FC<Props> = ({
                     ...e,
                     title: formatSlotTitle(e, entityType, therapistsMap, studentsMap, classesMap),
                 }))}
+                businessHours={businessHours}
             />
         </Box>
     );

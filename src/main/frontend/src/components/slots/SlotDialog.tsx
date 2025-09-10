@@ -82,10 +82,6 @@ const SlotDialog: React.FC<Props> = ({
         updateField(field, toISOTime(datePart, value));
     };
 
-    const handleDateChange = (field: 'validFrom' | 'validTo', value: string) => {
-        updateField(field, value);
-    };
-
     const therapistItems = therapists.map((t) => ({
         id: t.id!,
         label: `${t.firstName} ${t.lastName}`,
@@ -169,7 +165,7 @@ const SlotDialog: React.FC<Props> = ({
                         fullWidth
                         margin="dense"
                         value={getDateFromISO(formValues.validFrom) || ''}
-                        onChange={(e) => handleDateChange('validFrom', e.target.value)}
+                        onChange={(e) => updateField('validFrom', e.target.value)}
                         slotProps={{
                             inputLabel: { shrink: true },
                         }}
@@ -181,7 +177,7 @@ const SlotDialog: React.FC<Props> = ({
                         fullWidth
                         margin="dense"
                         value={getDateFromISO(formValues.validTo) || ''}
-                        onChange={(e) => handleDateChange('validTo', e.target.value)}
+                        onChange={(e) => updateField('validTo', e.target.value)}
                         slotProps={{
                             inputLabel: { shrink: true },
                         }}

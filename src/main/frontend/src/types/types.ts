@@ -32,6 +32,29 @@ export interface TherapistDto {
     lastName: string;
     role: TherapistRole;
     departments: Department[];
+    availabilities?: TherapistAvailabilityDto[];
+}
+
+export interface TherapistAvailabilityDto {
+    id?: number;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+}
+
+export interface BusinessHoursDto {
+    id?: number;
+    daysOfWeek: number[];
+    startTime: string;
+    endTime: string;
+    color?: string;
+    overlap?: boolean;
+}
+
+export interface CreateTherapistAvailabilityDto {
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
 }
 
 export interface RoomDto {

@@ -1,6 +1,7 @@
 package com.MSPDiON.SchoolSchedule.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +30,7 @@ public class Therapist {
   @Enumerated(EnumType.STRING)
   @Column(name = "department")
   private List<Department> departments;
+
+  @OneToMany(mappedBy = "therapist", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<TherapistAvailability> availabilities = new ArrayList<>();
 }

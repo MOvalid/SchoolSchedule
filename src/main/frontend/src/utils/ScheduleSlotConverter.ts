@@ -1,4 +1,11 @@
-import { ScheduleSlotDto, Slot, SlotFormValues } from '../types/types';
+import {
+    BusinessHoursDto,
+    ScheduleSlotDto,
+    Slot,
+    SlotFormValues,
+    TherapistAvailabilityDto,
+    TherapistDto,
+} from '../types/types';
 
 /**
  * Zwraca datę poniedziałku aktualnego tygodnia w UTC.
@@ -85,4 +92,24 @@ export const convertFormValuesToScheduleSlotDto = (formValues: SlotFormValues): 
         validFrom: formValues.validFrom,
         validTo: formValues.validTo,
     };
+};
+
+export const findTherapistById = (
+    therapists: TherapistDto[],
+    id: number
+): TherapistDto | undefined => {
+    return therapists.find((t) => t.id === id);
+};
+
+export const mapAvailabilitiesToEvents = (
+    availabilities: TherapistAvailabilityDto[] | undefined
+): BusinessHoursDto[] => {
+    if (!availabilities) return [];
+    return availabilities.map((a) => ({
+        daysOfWeek: [a.dayOfWeek],
+        startTime: a.startTime,
+        endTime: a.endTime,
+        display: 'inverse-background',
+        overlap: false,
+    }));
 };

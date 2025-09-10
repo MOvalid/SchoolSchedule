@@ -2,7 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography, SxProps, Theme } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useLocation } from 'react-router-dom';
-import { StudentDto, TherapistDto, RoomDto, StudentClassDto, Slot } from '../../types/types';
+import {
+    StudentDto,
+    TherapistDto,
+    RoomDto,
+    StudentClassDto,
+    Slot,
+    TherapistAvailabilityDto,
+} from '../../types/types';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import ActionButtons from '../common/ActionButtons';
 import ScheduleCalendar from '../common/ScheduleCalendar';
@@ -17,6 +24,8 @@ import { getAllClasses } from '../../services/StudentClassService';
 import dayjs, { Dayjs } from 'dayjs';
 import { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
+import { findTherapistById } from '../../utils/ScheduleSlotConverter';
+import { useSnackbar } from '../../context/SnackbarContext';
 
 interface LocationState {
     entityType: EntityTypes;
@@ -39,9 +48,13 @@ export const ScheduleCalendarPage: React.FC = () => {
     const [rooms, setRooms] = useState<RoomDto[]>([]);
     const [students, setStudents] = useState<StudentDto[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClassDto[]>([]);
+    const [therapistAvailabilities, setTherapistAvailabilities] = useState<
+        TherapistAvailabilityDto[]
+    >([]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [editMode, setEditMode] = useState(false);
+    const snackbar = useSnackbar();
 
     const { events, isLoading, error } = useScheduleWithDate(entityType, entityId, selectedDate);
     const {
@@ -76,8 +89,27 @@ export const ScheduleCalendarPage: React.FC = () => {
         }
     };
 
+    const checkTherapistAvailability = (arg: DateClickArg) => {
+        const clickedDay = arg.date.getDay();
+        const clickedTime = arg.date.toTimeString().slice(0, 5);
+
+        return therapistAvailabilities.some((a) => {
+            return (
+                a.dayOfWeek === clickedDay && clickedTime >= a.startTime && clickedTime < a.endTime
+            );
+        });
+    };
+
     const handleDateClick = (arg: DateClickArg) => {
         if (!editMode) return;
+        const isWithinAvailability = checkTherapistAvailability(arg);
+        if (!isWithinAvailability) {
+            snackbar.showSnackbar(
+                'Nie możesz dodać zajęć poza godzinami dostępności terapeuty.',
+                'warning'
+            );
+            return;
+        }
         const startDateTime = arg.dateStr;
         const endDateTime = new Date(arg.date);
         endDateTime.setHours(endDateTime.getHours() + 1);
@@ -112,10 +144,26 @@ export const ScheduleCalendarPage: React.FC = () => {
 
     useEffect(() => {
         getAllRooms().then((res) => setRooms(res.data));
-        getAllTherapists().then((res) => setTherapists(res.data));
+        getAllTherapists().then((res) => {
+            setTherapists(res.data);
+            if (entityType === EntityTypes.Therapist) {
+                const therapist = findTherapistById(
+                    res.data,
+                    entityType === EntityTypes.Therapist ? entityId : -1
+                );
+                console.log(therapist);
+                setTherapistAvailabilities(
+                    therapist?.availabilities || ([] as TherapistAvailabilityDto[])
+                );
+            }
+        });
         getAllStudents().then((res) => setStudents(res.data));
         getAllClasses().then((res) => setStudentClasses(res.data));
-    }, [entityType]);
+    }, [entityType, entityId]);
+
+    useEffect(() => {
+        console.log(therapistAvailabilities);
+    }, [therapistAvailabilities]);
 
     if (error)
         return <Typography color="error">Błąd ładowania grafiku: {error.message}</Typography>;
@@ -158,6 +206,7 @@ export const ScheduleCalendarPage: React.FC = () => {
                 therapists={therapists}
                 students={students}
                 studentClasses={studentClasses}
+                availabilities={therapistAvailabilities}
                 editMode={editMode}
                 onEventClick={handleEventClick}
                 onDateClick={handleDateClick}
