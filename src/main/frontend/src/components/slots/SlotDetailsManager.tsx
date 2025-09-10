@@ -1,7 +1,7 @@
 import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
 import axios from 'axios';
 import SlotDetails from './SlotDetails';
-import SlotDialog from './SlotDialog';
+import { SlotDialog } from './SlotDialog';
 import {
     Slot,
     SlotFormValues,

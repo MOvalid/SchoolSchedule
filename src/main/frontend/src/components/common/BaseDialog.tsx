@@ -22,7 +22,6 @@ const styles: Record<string, SxProps<Theme>> = {
     dialogContent: {
         display: 'flex',
         flexDirection: 'column',
-        gap: 2,
         mt: 1,
         maxHeight: '60vh',
         overflowY: 'auto',
@@ -37,7 +36,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     children,
 }) => {
     return (
-        <Dialog open={open} onClose={onClose}>
+        <Dialog open={open} maxWidth="sm" fullWidth onClose={onClose}>
             <DialogTitle>{title}</DialogTitle>
             <DialogContent sx={styles.dialogContent}>{children}</DialogContent>
             <DialogActions>
