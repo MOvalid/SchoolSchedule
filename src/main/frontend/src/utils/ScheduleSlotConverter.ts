@@ -5,6 +5,7 @@ import {
     SlotFormValues,
     AvailabilityDto,
     TherapistDto,
+    StudentDto,
 } from '../types/types';
 
 /**
@@ -99,6 +100,10 @@ export const findTherapistById = (
     id: number
 ): TherapistDto | undefined => {
     return therapists.find((t) => t.id === id);
+};
+
+export const findStudentById = (students: StudentDto[], id: number): StudentDto | undefined => {
+    return students.find((s) => s.id === id);
 };
 
 export const mapAvailabilitiesToEvents = (

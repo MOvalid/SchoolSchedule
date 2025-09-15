@@ -5,7 +5,9 @@ import com.MSPDiON.SchoolSchedule.dto.mapper.AvailabilityMapper;
 import com.MSPDiON.SchoolSchedule.exception.AvailabilityNotFoundException;
 import com.MSPDiON.SchoolSchedule.exception.EntityNotAvailableException;
 import com.MSPDiON.SchoolSchedule.model.Availability;
+import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.repository.AvailabilityRepository;
+import com.MSPDiON.SchoolSchedule.repository.StudentRepository;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +19,33 @@ import org.springframework.stereotype.Service;
 public class AvailabilityService {
 
   private final AvailabilityRepository availabilityRepository;
+  private final StudentRepository studentRepository;
   private final AvailabilityMapper availabilityMapper;
 
-  // Pobranie availability dla danego właściciela
   public List<AvailabilityDto> getAvailabilities(Long entityId, String entityType) {
     List<Availability> availabilities =
         availabilityRepository.findByEntityIdAndEntityType(entityId, entityType);
+
+    if ("STUDENT".equalsIgnoreCase(entityType)) {
+      Student student =
+          studentRepository
+              .findById(entityId)
+              .orElseThrow(() -> new RuntimeException("Student not found: " + entityId));
+
+      LocalTime arrival = student.getArrivalTime();
+      LocalTime departure = student.getDepartureTime();
+
+      availabilities.forEach(
+          a -> {
+            if (a.getStartTime().isBefore(arrival)) {
+              a.setStartTime(arrival);
+            }
+            if (a.getEndTime().isAfter(departure)) {
+              a.setEndTime(departure);
+            }
+          });
+    }
+
     return availabilityMapper.toDtoList(availabilities);
   }
 

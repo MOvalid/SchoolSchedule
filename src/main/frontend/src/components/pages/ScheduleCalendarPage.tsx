@@ -24,7 +24,7 @@ import { getAllClasses } from '../../services/StudentClassService';
 import dayjs, { Dayjs } from 'dayjs';
 import { DateClickArg } from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
-import { findTherapistById } from '../../utils/ScheduleSlotConverter';
+import { findStudentById, findTherapistById } from '../../utils/ScheduleSlotConverter';
 import { useSnackbar } from '../../context/SnackbarContext';
 import { getTimeFromISO } from '../../utils/DateUtils';
 
@@ -159,7 +159,16 @@ export const ScheduleCalendarPage: React.FC = () => {
                 setAvailabilities(therapist?.availabilities || ([] as AvailabilityDto[]));
             }
         });
-        getAllStudents().then((res) => setStudents(res.data));
+        getAllStudents().then((res) => {
+            setStudents(res.data);
+            if (entityType === EntityTypes.Student) {
+                const student = findStudentById(
+                    res.data,
+                    entityType === EntityTypes.Student ? entityId : -1
+                );
+                setAvailabilities(student?.availabilities || ([] as AvailabilityDto[]));
+            }
+        });
         getAllClasses().then((res) => setStudentClasses(res.data));
     }, [entityType, entityId]);
 

@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import { getCalendarStyles } from '../../styles/calendar.styles';
 import { Box } from '@mui/material';
 import { Spinner } from './Spinner';
-import { mapAvailabilitiesToEvents } from '../../utils/ScheduleSlotConverter';
+import { getBusinessHours } from '../../utils/BusinessHoursUtils';
 
 interface Props {
     events: Slot[];
@@ -96,9 +96,10 @@ const ScheduleCalendar: React.FC<Props> = ({
         [studentClasses]
     );
 
-    const businessHours: BusinessHoursDto[] = useMemo(() => {
-        return mapAvailabilitiesToEvents(availabilities);
-    }, [availabilities]);
+    const businessHours: BusinessHoursDto[] = useMemo(
+        () => getBusinessHours(entityType, availabilities, students),
+        [entityType, availabilities, students]
+    );
 
     return (
         <Box id="calendar-container" sx={{ position: 'relative', ...getCalendarStyles(theme) }}>
