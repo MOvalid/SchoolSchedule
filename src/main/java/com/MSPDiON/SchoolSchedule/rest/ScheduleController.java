@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -106,5 +108,28 @@ public class ScheduleController {
       @PathVariable String entityType, @PathVariable Long entityId) {
     scheduleService.clearSchedule(entityId, entityType);
     return ResponseEntity.ok().build();
+  }
+
+  /**
+   * Pobiera plan lekcji dla jednostki (student/therapist/class)
+   *
+   * @param entityType student | therapist | class
+   * @param entityId id jednostki
+   * @param fileNameSuffix opcjonalny ciąg, który użytkownik chce dodać do nazwy pliku
+   */
+  @GetMapping("/{entityType}/{entityId}/download")
+  public ResponseEntity<byte[]> downloadSchedule(
+      @PathVariable String entityType,
+      @PathVariable Long entityId,
+      @RequestParam(required = false, defaultValue = "") String fileNameSuffix)
+      throws Exception {
+
+    ScheduleService.GeneratedFile file =
+        scheduleService.generateScheduleForEntity(entityType, entityId, fileNameSuffix);
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.fileName() + "\"")
+        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+        .body(file.content());
   }
 }

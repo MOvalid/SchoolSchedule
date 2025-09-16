@@ -15,15 +15,20 @@ import com.MSPDiON.SchoolSchedule.model.Student;
 import com.MSPDiON.SchoolSchedule.model.StudentClass;
 import com.MSPDiON.SchoolSchedule.repository.*;
 import com.MSPDiON.SchoolSchedule.utils.ConflictMessageBuilder;
+import com.MSPDiON.SchoolSchedule.utils.xlsx.ExcelFileNameGenerator;
+import com.MSPDiON.SchoolSchedule.utils.xlsx.ScheduleExcelGenerator;
 import jakarta.transaction.Transactional;
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,10 +37,9 @@ public class ScheduleService {
 
   private final ScheduleSlotRepository scheduleSlotRepository;
   private final StudentRepository studentRepository;
-  private final StudentClassRepository studentClassRepository;
   private final TherapistRepository therapistRepository;
-  private final RoomRepository roomRepository;
-
+  private final StudentClassRepository studentClassRepository;
+  private final ScheduleExcelGenerator excelGenerator;
   private final ScheduleMapper scheduleMapper;
 
   public ScheduleSlotDto createScheduleSlot(CreateScheduleSlotDto dto) {
@@ -447,4 +451,99 @@ public class ScheduleService {
     List<ScheduleSlot> slots = scheduleSlotRepository.findByStudentClassId(classId);
     scheduleSlotRepository.deleteAll(slots);
   }
+
+  public GeneratedFile generateScheduleForEntity(
+      String entityType, Long entityId, String fileNameSuffix) throws Exception {
+
+    List<ScheduleSlotDto> slots = fetchSlotsForEntity(entityType, entityId);
+    String entityName = fetchEntityName(entityType, entityId);
+
+    if (slots.isEmpty()) throw new IllegalArgumentException("Brak slotów do wygenerowania");
+
+    LocalDate startDate = getStartDate(slots);
+    LocalDate endDate = getEndDate(slots);
+
+    String baseFileName = buildBaseFileName(fileNameSuffix);
+    String fileName =
+        ExcelFileNameGenerator.generateFileName(baseFileName, entityName, startDate, endDate);
+
+    Workbook workbook = excelGenerator.generateSchedule(slots, entityName, entityType);
+    byte[] content = workbookToBytes(workbook);
+
+    return new GeneratedFile(fileName, content);
+  }
+
+  // =================== HELPERS ===================
+
+  private List<ScheduleSlotDto> fetchSlotsForEntity(String entityType, Long entityId) {
+    return switch (entityType.toLowerCase()) {
+      case "student" -> scheduleSlotRepository.findByStudentId(entityId).stream()
+          .map(scheduleMapper::toDto)
+          .toList();
+      case "therapist" -> scheduleSlotRepository.findByTherapistId(entityId).stream()
+          .map(scheduleMapper::toDto)
+          .toList();
+      case "class" -> scheduleSlotRepository.findByStudentClassId(entityId).stream()
+          .map(scheduleMapper::toDto)
+          .toList();
+      default -> throw new IllegalArgumentException("Nieznany entityType: " + entityType);
+    };
+  }
+
+  private String fetchEntityName(String entityType, Long entityId) {
+    return switch (entityType.toLowerCase()) {
+      case "student" -> studentRepository
+          .findById(entityId)
+          .map(s -> s.getFirstName() + " " + s.getLastName())
+          .orElseThrow(() -> new IllegalArgumentException("Nie znaleziono ucznia"));
+      case "therapist" -> therapistRepository
+          .findById(entityId)
+          .map(t -> t.getFirstName() + " " + t.getLastName())
+          .orElseThrow(() -> new IllegalArgumentException("Nie znaleziono terapeuty"));
+      case "class" -> studentClassRepository
+          .findById(entityId)
+          .map(StudentClass::getName)
+          .orElseThrow(() -> new IllegalArgumentException("Nie znaleziono klasy"));
+      default -> throw new IllegalArgumentException("Nieznany entityType: " + entityType);
+    };
+  }
+
+  private LocalDate getStartDate(List<ScheduleSlotDto> slots) {
+    return slots.stream()
+        .map(s -> parseDate(s.getValidFrom()))
+        .filter(Objects::nonNull)
+        .min(LocalDate::compareTo)
+        .orElse(LocalDate.now());
+  }
+
+  private LocalDate getEndDate(List<ScheduleSlotDto> slots) {
+    return slots.stream()
+        .map(s -> parseDate(s.getValidTo()))
+        .filter(Objects::nonNull)
+        .max(LocalDate::compareTo)
+        .orElse(LocalDate.now());
+  }
+
+  private String buildBaseFileName(String fileNameSuffix) {
+    String base = "PlanLekcji";
+    if (fileNameSuffix != null && !fileNameSuffix.isBlank()) {
+      base += "_" + fileNameSuffix;
+    }
+    return base;
+  }
+
+  private byte[] workbookToBytes(Workbook workbook) throws Exception {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      workbook.write(baos);
+      workbook.close();
+      return baos.toByteArray();
+    }
+  }
+
+  private LocalDate parseDate(String dateStr) {
+    if (dateStr == null || dateStr.isEmpty()) return null;
+    return LocalDate.parse(dateStr);
+  }
+
+  public record GeneratedFile(String fileName, byte[] content) {}
 }
