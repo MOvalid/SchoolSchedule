@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosRequestConfig, isAxiosError } from 'axios';
 import api from '../api/api';
 
 export type UseDownloadFileResult = {
@@ -39,10 +39,8 @@ export const useDownloadFile = (): UseDownloadFileResult => {
 
             const response = await api.request(config);
 
-            const blob = new Blob([response.data]);
             const disposition = response.headers['content-disposition'];
             let filename = fallbackFilename;
-
             if (disposition && disposition.includes('filename=')) {
                 const match = disposition.match(/filename\*?=(?:UTF-8''|")?([^;"']+)/i);
                 if (match?.[1]) {
@@ -50,6 +48,7 @@ export const useDownloadFile = (): UseDownloadFileResult => {
                 }
             }
 
+            const blob = new Blob([response.data]);
             const href = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = href;
@@ -60,7 +59,26 @@ export const useDownloadFile = (): UseDownloadFileResult => {
             link.remove();
             window.URL.revokeObjectURL(href);
         } catch (err) {
-            setError((err as Error).message);
+            let message = 'Wystąpił błąd podczas pobierania pliku';
+
+            if (isAxiosError(err) && err.response?.data) {
+                try {
+                    const decoder = new TextDecoder('utf-8');
+                    const text = decoder.decode(err.response.data as ArrayBuffer);
+                    const json = JSON.parse(text);
+                    if (json.message) {
+                        message = json.message;
+                    }
+                } catch {
+                    if ((err as AxiosError).message) {
+                        message = (err as AxiosError).message;
+                    }
+                }
+            } else if (err instanceof Error) {
+                message = err.message;
+            }
+
+            setError(message);
         } finally {
             setIsLoading(false);
         }

@@ -25,7 +25,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleStudentNotFound(
       StudentNotFoundException ex, HttpServletRequest request) {
     ErrorResponse error =
-        new ErrorResponse(400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+        new ErrorResponse(
+            400,
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI(),
+            "StudentNotFoundException");
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 
@@ -33,7 +38,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleTherapistNotFound(
       TherapistNotFoundException ex, HttpServletRequest request) {
     ErrorResponse error =
-        new ErrorResponse(400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+        new ErrorResponse(
+            400,
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI(),
+            "TherapistNotFoundException");
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 
@@ -41,7 +51,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleTherapistNotFound(
       StudentClassNotFoundException ex, HttpServletRequest request) {
     ErrorResponse error =
-        new ErrorResponse(400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+        new ErrorResponse(
+            400,
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI(),
+            "StudentClassNotFoundException");
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 
@@ -49,7 +64,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleRoomNotFound(
       RoomNotFoundException ex, HttpServletRequest request) {
     ErrorResponse error =
-        new ErrorResponse(400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+        new ErrorResponse(
+            400,
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI(),
+            "RoomNotFoundException");
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 
@@ -73,33 +93,43 @@ public class GlobalExceptionHandler {
             ex.getStatusCode().value(),
             ex.getReason() != null ? ex.getReason() : ex.getMessage(),
             LocalDateTime.now(),
-            request.getRequestURI());
+            request.getRequestURI(),
+            "ResponseStatusException");
     return new ResponseEntity<>(error, ex.getStatusCode());
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-      ResponseStatusException ex, HttpServletRequest request) {
-    String message = ex.getReason() != null ? ex.getReason() : ex.getMessage();
-    message = "IllegalArgumentException: " + message;
+      IllegalArgumentException ex, HttpServletRequest request) {
     ErrorResponse error =
-        new ErrorResponse(400, message, LocalDateTime.now(), request.getRequestURI());
+        new ErrorResponse(
+            400,
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI(),
+            "IllegalArgumentException");
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(InvalidStudentTimeException.class)
   public ResponseEntity<ErrorResponse> handleInvalidStudentTimeException(
-      ResponseStatusException ex, HttpServletRequest request) {
+      InvalidStudentTimeException ex, HttpServletRequest request) {
     ErrorResponse error =
-        new ErrorResponse(400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+        new ErrorResponse(
+            400,
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI(),
+            "InvalidStudentTimeException");
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(ImportException.class)
   public ResponseEntity<ErrorResponse> handleImportException(
-      ResponseStatusException ex, HttpServletRequest request) {
+      ImportException ex, HttpServletRequest request) {
     ErrorResponse error =
-        new ErrorResponse(400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+        new ErrorResponse(
+            400, ex.getMessage(), LocalDateTime.now(), request.getRequestURI(), "ImportException");
     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 }

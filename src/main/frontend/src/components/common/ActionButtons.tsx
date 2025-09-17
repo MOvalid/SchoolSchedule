@@ -42,7 +42,7 @@ const ActionButtons: React.FC<Props> = ({
         if (error) {
             showSnackbar(error, 'error');
         }
-    }, [error, showSnackbar]);
+    }, [error]);
 
     return (
         <Stack direction="row" spacing={2}>
