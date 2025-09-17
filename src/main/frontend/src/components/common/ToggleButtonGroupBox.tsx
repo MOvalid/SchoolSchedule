@@ -1,10 +1,11 @@
 import React from 'react';
-import { Box, Button } from '@mui/material';
+import { Box, SxProps } from '@mui/material';
+import BaseButton from './BaseButton';
 
 interface ToggleOption<T> {
     value: T;
     label: string;
-    color?: 'primary' | 'secondary';
+    color?: 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'inherit'; // dopasuj do BaseButton
     onClick?: () => void;
 }
 
@@ -14,22 +15,24 @@ interface ToggleButtonGroupBoxProps<T> {
     options: ToggleOption<T>[];
 }
 
+const boxStyles: SxProps = { display: 'flex', gap: 1 };
+
 function ToggleButtonGroupBox<T>({ selected, onChange, options }: ToggleButtonGroupBoxProps<T>) {
     return (
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={boxStyles}>
             {options.map((opt) => (
-                <Button
+                <BaseButton
                     key={String(opt.value)}
-                    variant={selected === opt.value ? 'contained' : 'outlined'}
                     color={opt.color || 'primary'}
+                    variant={selected === opt.value ? 'contained' : 'outlined'}
+                    fullWidth
                     onClick={() => {
                         onChange(opt.value);
                         if (opt.onClick) opt.onClick();
                     }}
-                    fullWidth
                 >
                     {opt.label}
-                </Button>
+                </BaseButton>
             ))}
         </Box>
     );

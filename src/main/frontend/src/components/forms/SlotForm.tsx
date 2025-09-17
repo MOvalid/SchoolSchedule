@@ -127,7 +127,11 @@ export const SlotForm: React.FC<SlotFormProps> = ({
                 margin="dense"
                 value={getDateFromISO(formValues.validFrom) || ''}
                 onChange={(e) => updateField('validFrom', e.target.value)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                    inputLabel: {
+                        shrink: true,
+                    },
+                }}
             />
 
             <TextField
@@ -137,7 +141,11 @@ export const SlotForm: React.FC<SlotFormProps> = ({
                 margin="dense"
                 value={getDateFromISO(formValues.validTo) || ''}
                 onChange={(e) => updateField('validTo', e.target.value)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                    inputLabel: {
+                        shrink: true,
+                    },
+                }}
             />
 
             {showStudentSelect && (

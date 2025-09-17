@@ -1,13 +1,12 @@
 import React from 'react';
-import { Button, CircularProgress } from '@mui/material';
+import { Button, ButtonProps, CircularProgress } from '@mui/material';
 
-interface BaseButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    isLoading: boolean;
+interface BaseButtonProps extends Omit<ButtonProps, 'onClick'> {
+    isLoading?: boolean;
     loadingText?: string;
     children: React.ReactNode;
+    onClick: () => void;
     startIcon?: React.ReactNode;
-    color?: 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
-    variant?: 'text' | 'outlined' | 'contained';
 }
 
 const BaseButton: React.FC<BaseButtonProps> = ({

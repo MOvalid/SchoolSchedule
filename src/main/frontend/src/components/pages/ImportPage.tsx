@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Paper, Typography, Button, CircularProgress, SxProps, Theme } from '@mui/material';
+import { Box, Paper, Typography, SxProps, Theme } from '@mui/material';
 import FileUpload from '../common/FileUpload';
 import { EntityTypes } from '../../types/enums/entityTypes';
 import EntityTypeSelector from '../common/EntityTypeSelector';
 import { useFileImport } from '../../hooks/useFileImport';
 import { useSnackbar } from '../../context/SnackbarContext';
+import BaseButton from '../common/BaseButton';
 
 const styles: Record<string, SxProps<Theme>> = {
     paper: { p: 3, maxWidth: 600, margin: '0 auto', width: '100%' },
@@ -83,15 +84,16 @@ const ImportPage: React.FC = () => {
                     />
                 </Box>
 
-                <Button
+                <BaseButton
                     variant="contained"
                     color="primary"
-                    disabled={loading || selectedFiles.length === 0}
+                    fullWidth
+                    isLoading={loading}
                     onClick={handleUpload}
                     sx={styles.submitBtn}
                 >
-                    {loading ? <CircularProgress size={24} /> : 'Wyślij do importu'}
-                </Button>
+                    Wyślij do importu
+                </BaseButton>
 
                 {validationErrors.length > 0 && (
                     <Box sx={styles.message}>
