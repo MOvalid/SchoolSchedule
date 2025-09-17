@@ -1,10 +1,10 @@
 import React from 'react';
 import ToggleButtonGroupBox from '../common/ToggleButtonGroupBox';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 
 interface Props {
-    selected: EntityTypes;
-    onChange: (type: EntityTypes) => void;
+    selected: EntityType;
+    onChange: (type: EntityType) => void;
 }
 
 const EntityTypeSelector: React.FC<Props> = ({ selected, onChange }) => {
@@ -13,9 +13,9 @@ const EntityTypeSelector: React.FC<Props> = ({ selected, onChange }) => {
             selected={selected}
             onChange={onChange}
             options={[
-                { value: EntityTypes.Student, label: 'Uczeń' },
-                { value: EntityTypes.Therapist, label: 'Terapeuta' },
-                { value: EntityTypes.Class, label: 'Klasa' },
+                { value: EntityType.Student, label: 'Uczeń' },
+                { value: EntityType.Therapist, label: 'Terapeuta' },
+                { value: EntityType.Class, label: 'Klasa' },
             ]}
         />
     );

@@ -8,7 +8,7 @@ import {
     StudentClassDto,
 } from '../../types/types';
 import SearchSelect from '../common/SearchSelect';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import { getDateFromISO, getTimeFromISO, toISOTime } from '../../utils/DateUtils';
 import { confirmDeleteStackSx } from '../../styles/slotDetails.styles';
 
@@ -21,7 +21,7 @@ interface SlotFormProps {
     rooms: RoomDto[];
     students: StudentDto[];
     classes: StudentClassDto[];
-    entityType: EntityTypes;
+    entityType: EntityType;
     showConfirmDelete?: boolean;
 }
 
@@ -58,9 +58,9 @@ export const SlotForm: React.FC<SlotFormProps> = ({
     const roomItems = rooms.map((r) => ({ id: r.id!, label: r.name }));
     const classItems = classes.map((c) => ({ id: c.id!, label: c.name }));
 
-    const showStudentSelect = entityType === EntityTypes.Therapist;
-    const showTherapistSelect = entityType !== EntityTypes.Therapist;
-    const showClassSelect = entityType !== EntityTypes.Student;
+    const showStudentSelect = entityType === EntityType.Therapist;
+    const showTherapistSelect = entityType !== EntityType.Therapist;
+    const showClassSelect = entityType !== EntityType.Student;
 
     const getFieldError = (field: keyof SlotFormValues) => fieldErrors[field] ?? '';
 

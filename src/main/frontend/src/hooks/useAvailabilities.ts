@@ -6,9 +6,9 @@ import {
     updateAvailability,
 } from '../services/AvailabilityService';
 import { AvailabilityDto, CreateAvailabilityDto } from '../types/types';
-import { EntityTypes } from '../types/enums/entityTypes';
+import { EntityType } from '../types/enums/entityType';
 
-export const useGetAvailabilities = (entityId: number, entityType: EntityTypes) =>
+export const useGetAvailabilities = (entityId: number, entityType: EntityType) =>
     useQuery({
         queryKey: [entityType, entityId, 'availabilities'],
         queryFn: async () => (await getAvailabilities(entityType, entityId)).data,
@@ -17,7 +17,7 @@ export const useGetAvailabilities = (entityId: number, entityType: EntityTypes) 
 const useAvailabilityMutation = <TArgs, TResult = void>(
     mutationFn: (args: TArgs) => Promise<TResult>,
     entityId: number,
-    entityType: EntityTypes
+    entityType: EntityType
 ): UseMutationResult<TResult, unknown, TArgs> => {
     const queryClient = useQueryClient();
     return useMutation<TResult, unknown, TArgs>({
@@ -29,14 +29,14 @@ const useAvailabilityMutation = <TArgs, TResult = void>(
     });
 };
 
-export const useCreateAvailability = (entityId: number, entityType: EntityTypes) =>
+export const useCreateAvailability = (entityId: number, entityType: EntityType) =>
     useAvailabilityMutation(
         (data: CreateAvailabilityDto) => createAvailability(entityType, entityId, data),
         entityId,
         entityType
     );
 
-export const useUpdateAvailability = (entityId: number, entityType: EntityTypes) =>
+export const useUpdateAvailability = (entityId: number, entityType: EntityType) =>
     useAvailabilityMutation(
         ({ availabilityId, data }: { availabilityId: number; data: AvailabilityDto }) =>
             updateAvailability(entityType, entityId, availabilityId, data),
@@ -44,7 +44,7 @@ export const useUpdateAvailability = (entityId: number, entityType: EntityTypes)
         entityType
     );
 
-export const useDeleteAvailability = (entityId: number, entityType: EntityTypes) =>
+export const useDeleteAvailability = (entityId: number, entityType: EntityType) =>
     useAvailabilityMutation(
         (availabilityId: number) => deleteAvailability(entityType, entityId, availabilityId),
         entityId,

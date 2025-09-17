@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, SxProps, Theme } from '@mui/material';
 import FileUpload from '../common/FileUpload';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import EntityTypeSelector from '../common/EntityTypeSelector';
 import { useFileImport } from '../../hooks/useFileImport';
 import { useSnackbar } from '../../context/SnackbarContext';
@@ -22,7 +22,7 @@ const styles: Record<string, SxProps<Theme>> = {
 
 const ImportPage: React.FC = () => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [entityType, setEntityType] = useState<EntityTypes>(EntityTypes.Student);
+    const [entityType, setEntityType] = useState<EntityType>(EntityType.Student);
     const [resetCounter, setResetCounter] = useState(0);
 
     const { showSnackbar } = useSnackbar();
@@ -44,7 +44,7 @@ const ImportPage: React.FC = () => {
         clearMessages();
     };
 
-    const handleEntityTypeChange = (type: EntityTypes) => {
+    const handleEntityTypeChange = (type: EntityType) => {
         setEntityType(type);
         setSelectedFiles([]);
         clearMessages();

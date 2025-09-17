@@ -1,6 +1,6 @@
 import api from '../api/api';
 import { ScheduleSlotDto } from '../types/types';
-import { EntityTypes } from '../types/enums/entityTypes';
+import { EntityType } from '../types/enums/entityType';
 
 export const getAllScheduleSlots = (date?: string) =>
     api.get<ScheduleSlotDto[]>(`/schedules${date ? `?date=${date}` : ''}`);
@@ -17,7 +17,7 @@ export const getScheduleForClass = (id: number, date?: string) =>
     api.get<ScheduleSlotDto[]>(`/schedules/class/${id}${date ? `?date=${date}` : ''}`);
 
 export const createScheduleSlot = (
-    entityType: EntityTypes,
+    entityType: EntityType,
     entityId: number,
     data: ScheduleSlotDto
 ) => api.post<ScheduleSlotDto>(`/schedules/${entityType}/${entityId}`, data);
@@ -30,7 +30,7 @@ export const updateStudentScheduleSlot = (studentId: number, id: number, data: S
 
 export const deleteScheduleSlot = (id: number) => api.delete(`/schedules/${id}`);
 
-export const deleteSchedule = (entityId: number, entityType: EntityTypes) =>
+export const deleteSchedule = (entityId: number, entityType: EntityType) =>
     api.delete(`/schedules/${entityType}/${entityId}`);
 
 export const deleteStudentScheduleSlot = (studentId: number, id: number) =>

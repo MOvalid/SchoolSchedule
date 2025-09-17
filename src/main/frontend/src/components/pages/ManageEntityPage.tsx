@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import { StudentClassDto, StudentDto, TherapistDto } from '../../types/types';
 import SearchSelect from '../common/SearchSelect';
 import { getAllStudents } from '../../services/StudentService';
@@ -32,7 +32,7 @@ export enum Mode {
 
 const ManageEntityPage: React.FC = () => {
     const [mode, setMode] = useState<Mode>(Mode.Create);
-    const [entityType, setEntityType] = useState<EntityTypes>(EntityTypes.Student);
+    const [entityType, setEntityType] = useState<EntityType>(EntityType.Student);
     const [selectedEntity, setSelectedEntity] = useState<
         StudentDto | TherapistDto | StudentClassDto | undefined
     >(undefined);
@@ -50,7 +50,7 @@ const ManageEntityPage: React.FC = () => {
         const fetchEntities = async () => {
             try {
                 switch (entityType) {
-                    case EntityTypes.Student: {
+                    case EntityType.Student: {
                         const students = (await getAllStudents()).data as StudentDto[];
                         setOptions(
                             students.map((s) => ({
@@ -60,7 +60,7 @@ const ManageEntityPage: React.FC = () => {
                         );
                         break;
                     }
-                    case EntityTypes.Therapist: {
+                    case EntityType.Therapist: {
                         const therapists = (await getAllTherapists()).data as TherapistDto[];
                         setOptions(
                             therapists.map((t) => ({
@@ -70,7 +70,7 @@ const ManageEntityPage: React.FC = () => {
                         );
                         break;
                     }
-                    case EntityTypes.Class: {
+                    case EntityType.Class: {
                         const classes = (await getAllClasses()).data as StudentClassDto[];
                         setOptions(classes.map((c) => ({ id: c.id!, label: `Grupa ${c.name}` })));
                         break;
@@ -96,17 +96,17 @@ const ManageEntityPage: React.FC = () => {
 
         try {
             switch (entityType) {
-                case EntityTypes.Student: {
+                case EntityType.Student: {
                     const student = (await getAllStudents()).data.find((s) => s.id === id);
                     setSelectedEntity(student || undefined);
                     break;
                 }
-                case EntityTypes.Therapist: {
+                case EntityType.Therapist: {
                     const therapist = (await getAllTherapists()).data.find((t) => t.id === id);
                     setSelectedEntity(therapist || undefined);
                     break;
                 }
-                case EntityTypes.Class: {
+                case EntityType.Class: {
                     const cls = (await getAllClasses()).data.find((c) => c.id === id);
                     setSelectedEntity(cls || undefined);
                     break;
@@ -149,9 +149,9 @@ const ManageEntityPage: React.FC = () => {
                     <Box sx={searchSelectBox}>
                         <SearchSelect
                             label={
-                                entityType === EntityTypes.Student
+                                entityType === EntityType.Student
                                     ? 'Uczeń'
-                                    : entityType === EntityTypes.Therapist
+                                    : entityType === EntityType.Therapist
                                       ? 'Terapeuta'
                                       : 'Klasa'
                             }

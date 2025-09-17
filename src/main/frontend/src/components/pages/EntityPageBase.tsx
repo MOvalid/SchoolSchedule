@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import { StudentForm } from '../forms/StudentForm';
 import TherapistForm from '../forms/TherapistForm';
 import ClassForm from '../forms/ClassForm';
@@ -10,18 +10,18 @@ type Mode = 'create' | 'edit';
 
 interface Props {
     mode: Mode;
-    entityType?: EntityTypes;
+    entityType?: EntityType;
     entityData?: StudentDto | TherapistDto | StudentClassDto;
 }
 
 const EntityPageBase: React.FC<Props> = ({ mode, entityType, entityData }) => {
     const renderForm = () => {
         switch (entityType) {
-            case EntityTypes.Student:
+            case EntityType.Student:
                 return <StudentForm initialData={entityData as StudentDto} mode={mode} />;
-            case EntityTypes.Therapist:
+            case EntityType.Therapist:
                 return <TherapistForm initialData={entityData as TherapistDto} mode={mode} />;
-            case EntityTypes.Class:
+            case EntityType.Class:
                 return <ClassForm initialData={entityData as StudentClassDto} mode={mode} />;
             default:
                 return null;

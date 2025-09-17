@@ -1,7 +1,7 @@
 import { Stack, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import React, { useEffect } from 'react';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import { useFileDownloader } from '../../hooks/useFileDownloader';
 import { useSnackbar } from '../../context/SnackbarContext';
 import BaseButton from './BaseButton';
@@ -17,7 +17,7 @@ interface Props {
     editMode: boolean;
     setEditMode: (val: boolean) => void;
     onClearSchedule: () => void;
-    entityType: EntityTypes;
+    entityType: EntityType;
     entityId: number;
     fileNameSuffix?: string;
 }

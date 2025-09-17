@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { AppBar, Toolbar, Button, Box } from '@mui/material';
 import EntitySearchPage from './components/pages/EntitySearchPage';
-import { EntityTypes } from './types/enums/entityTypes';
+import { EntityType } from './types/enums/entityType';
 import ManageEntityPage from './components/pages/ManageEntityPage';
 import { ScheduleCalendarPage } from './components/pages/ScheduleCalendarPage';
 import HomePage from './components/pages/HomePage';
@@ -40,15 +40,15 @@ const AppRoutes = () => (
                 <Route path="/" element={<HomePage />} />
                 <Route
                     path="/students"
-                    element={<EntitySearchPage entityType={EntityTypes.Student} />}
+                    element={<EntitySearchPage entityType={EntityType.Student} />}
                 />
                 <Route
                     path="/therapists"
-                    element={<EntitySearchPage entityType={EntityTypes.Therapist} />}
+                    element={<EntitySearchPage entityType={EntityType.Therapist} />}
                 />
                 <Route
                     path="/classes"
-                    element={<EntitySearchPage entityType={EntityTypes.Class} />}
+                    element={<EntitySearchPage entityType={EntityType.Class} />}
                 />
                 <Route path="/manage-entity" element={<ManageEntityPage />} />
                 <Route path="/import" element={<ImportPage />} />

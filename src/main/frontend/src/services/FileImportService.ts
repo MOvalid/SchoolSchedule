@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { EntityTypes } from '../types/enums/entityTypes';
+import { EntityType } from '../types/enums/entityType';
 
 export interface FileImportResponse {
     success: boolean;
@@ -8,7 +8,7 @@ export interface FileImportResponse {
 }
 
 export const importFiles = async (
-    entityType: EntityTypes,
+    entityType: EntityType,
     files: File[]
 ): Promise<FileImportResponse> => {
     const formData = new FormData();

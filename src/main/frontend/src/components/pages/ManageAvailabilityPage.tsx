@@ -13,7 +13,7 @@ import { BaseTable, Column } from '../common/BaseTable';
 import { useTherapistById } from '../../hooks/useTherapists';
 import { useStudentById } from '../../hooks/useStudents';
 import { AvailabilityDialog } from '../common/AvailabilityDialog';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 
 const styles: Record<string, SxProps<Theme>> = {
     pageHeader: {
@@ -25,7 +25,7 @@ const styles: Record<string, SxProps<Theme>> = {
 };
 
 interface ManageAvailabilityPageProps {
-    entityType: EntityTypes;
+    entityType: EntityType;
     entityId: number;
 }
 

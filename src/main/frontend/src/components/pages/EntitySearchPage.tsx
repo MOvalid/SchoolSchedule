@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchSelect from '../common/SearchSelect';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import { StudentDto, TherapistDto, StudentClassDto } from '../../types/types';
 import { getAllStudents } from '../../services/StudentService';
 import { getAllTherapists } from '../../services/TherapistService';
@@ -14,7 +14,7 @@ interface EntityOption {
 }
 
 interface Props {
-    entityType: EntityTypes;
+    entityType: EntityType;
 }
 
 const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
@@ -24,11 +24,11 @@ const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
 
     const labels = useMemo(() => {
         switch (entityType) {
-            case EntityTypes.Student:
+            case EntityType.Student:
                 return { title: 'Wyszukaj ucznia', label: 'Uczeń' };
-            case EntityTypes.Therapist:
+            case EntityType.Therapist:
                 return { title: 'Wyszukaj terapeutę', label: 'Terapeuta' };
-            case EntityTypes.Class:
+            case EntityType.Class:
                 return { title: 'Wyszukaj klasę', label: 'Klasa' };
             default:
                 return { title: '', label: '' };
@@ -39,7 +39,7 @@ const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
         const fetchEntities = async () => {
             try {
                 switch (entityType) {
-                    case EntityTypes.Student: {
+                    case EntityType.Student: {
                         const data = (await getAllStudents()).data as StudentDto[];
                         setOptions(
                             data.map((s) => ({
@@ -49,7 +49,7 @@ const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
                         );
                         break;
                     }
-                    case EntityTypes.Therapist: {
+                    case EntityType.Therapist: {
                         const data = (await getAllTherapists()).data as TherapistDto[];
                         setOptions(
                             data.map((t) => ({
@@ -59,7 +59,7 @@ const EntitySearchPage: React.FC<Props> = ({ entityType }) => {
                         );
                         break;
                     }
-                    case EntityTypes.Class: {
+                    case EntityType.Class: {
                         const data = (await getAllClasses()).data as StudentClassDto[];
                         setOptions(
                             data.map((c) => ({

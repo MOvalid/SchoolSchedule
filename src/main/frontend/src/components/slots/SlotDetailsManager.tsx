@@ -10,7 +10,7 @@ import {
     StudentDto,
     StudentClassDto,
 } from '../../types/types';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 
 interface SlotDetailsManagerProps {
     selectedSlot: Slot | null;
@@ -19,7 +19,7 @@ interface SlotDetailsManagerProps {
     rooms: RoomDto[];
     students: StudentDto[];
     studentClasses: StudentClassDto[];
-    entityType: EntityTypes;
+    entityType: EntityType;
     studentId: number;
     editSlot: (
         slot: Slot,

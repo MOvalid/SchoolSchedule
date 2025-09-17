@@ -9,9 +9,9 @@ import {
     useClearSchedule,
 } from './useSchedules';
 import { convertFormValuesToScheduleSlotDto } from '../utils/ScheduleSlotConverter';
-import { EntityTypes } from '../types/enums/entityTypes';
+import { EntityType } from '../types/enums/entityType';
 
-export const useSlotManager = (entityType: EntityTypes, entityId: number) => {
+export const useSlotManager = (entityType: EntityType, entityId: number) => {
     const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
     const [formValues, setFormValues] = useState<SlotFormValues>({
         title: '',

@@ -1,10 +1,10 @@
 import React from 'react';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import { StudentDto, TherapistDto, StudentClassDto } from '../../types/types';
 import EntityPageBase from '../pages/EntityPageBase';
 
 interface Props {
-    entityType: EntityTypes;
+    entityType: EntityType;
     entityData: StudentDto | TherapistDto | StudentClassDto;
 }
 

@@ -13,7 +13,7 @@ import {
     TherapistDto,
 } from '../../types/types';
 import { EventClickArg } from '@fullcalendar/core';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import { useTheme } from '@mui/material/styles';
 import { getCalendarStyles } from '../../styles/calendar.styles';
 import { Box } from '@mui/material';
@@ -29,13 +29,13 @@ interface Props {
     editMode: boolean;
     onEventClick: (arg: EventClickArg) => void;
     onDateClick: (arg: DateClickArg) => void;
-    entityType: EntityTypes;
+    entityType: EntityType;
     loading?: boolean;
 }
 
 export const formatSlotTitle = (
     slot: Slot,
-    userType: EntityTypes,
+    userType: EntityType,
     therapistsMap: Record<number, { firstName: string; lastName: string }>,
     studentsMap: Record<number, { firstName: string; lastName: string }>,
     classesMap: Record<number, { name: string }>
@@ -47,14 +47,14 @@ export const formatSlotTitle = (
     };
 
     switch (userType) {
-        case EntityTypes.Student:
+        case EntityType.Student:
             if (slot.therapistId) {
                 const therapist = therapistsMap[slot.therapistId];
                 appendName(therapist ? `${therapist.firstName} ${therapist.lastName}` : undefined);
             }
             break;
 
-        case EntityTypes.Therapist:
+        case EntityType.Therapist:
             if (slot.studentClassId) {
                 const studentClass = classesMap[slot.studentClassId];
                 appendName(studentClass?.name);

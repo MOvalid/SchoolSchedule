@@ -10,7 +10,7 @@ import {
     AvailabilityDto,
     TherapistDto,
 } from '../../types/types';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 import ActionButtons from '../common/ActionButtons';
 import ScheduleCalendar from '../common/ScheduleCalendar';
 import SlotDetailsManager from '../slots/SlotDetailsManager';
@@ -29,7 +29,7 @@ import { useSnackbar } from '../../context/SnackbarContext';
 import { getTimeFromISO } from '../../utils/DateUtils';
 
 interface LocationState {
-    entityType: EntityTypes;
+    entityType: EntityType;
     entityId: number;
     name: string;
 }
@@ -79,9 +79,9 @@ export const ScheduleCalendarPage: React.FC = () => {
             start: event.start,
             end: event.end,
             therapistId:
-                event.therapistId ?? (entityType === EntityTypes.Therapist ? entityId : undefined),
+                event.therapistId ?? (entityType === EntityType.Therapist ? entityId : undefined),
             roomId: event.roomId,
-            studentIds: event.studentIds ?? (entityType === EntityTypes.Student ? [entityId] : []),
+            studentIds: event.studentIds ?? (entityType === EntityType.Student ? [entityId] : []),
             studentClassId: event.studentClassId,
             applyToAll: true,
             validFrom: event.validFrom ?? '',
@@ -104,7 +104,7 @@ export const ScheduleCalendarPage: React.FC = () => {
 
     const handleDateClick = (arg: DateClickArg) => {
         if (!editMode) return;
-        if (entityType === EntityTypes.Therapist) {
+        if (entityType === EntityType.Therapist) {
             const isWithinAvailability = checkAvailability(arg);
             if (!isWithinAvailability) {
                 snackbar.showSnackbar(
@@ -124,8 +124,8 @@ export const ScheduleCalendarPage: React.FC = () => {
             title: '',
             start: startDateTime,
             end: endDateTime.toISOString(),
-            therapistId: entityType === EntityTypes.Therapist ? entityId : undefined,
-            studentIds: entityType === EntityTypes.Student ? [entityId] : [],
+            therapistId: entityType === EntityType.Therapist ? entityId : undefined,
+            studentIds: entityType === EntityType.Student ? [entityId] : [],
             studentClassId: undefined,
             validFrom: today,
             validTo: '',
@@ -135,9 +135,9 @@ export const ScheduleCalendarPage: React.FC = () => {
             title: '',
             start: startDateTime,
             end: endDateTime.toISOString(),
-            therapistId: entityType === EntityTypes.Therapist ? entityId : undefined,
+            therapistId: entityType === EntityType.Therapist ? entityId : undefined,
             roomId: undefined,
-            studentIds: entityType === EntityTypes.Student ? [entityId] : [],
+            studentIds: entityType === EntityType.Student ? [entityId] : [],
             studentClassId: undefined,
             applyToAll: true,
             validFrom: today,
@@ -151,20 +151,20 @@ export const ScheduleCalendarPage: React.FC = () => {
         getAllRooms().then((res) => setRooms(res.data));
         getAllTherapists().then((res) => {
             setTherapists(res.data);
-            if (entityType === EntityTypes.Therapist) {
+            if (entityType === EntityType.Therapist) {
                 const therapist = findTherapistById(
                     res.data,
-                    entityType === EntityTypes.Therapist ? entityId : -1
+                    entityType === EntityType.Therapist ? entityId : -1
                 );
                 setAvailabilities(therapist?.availabilities || ([] as AvailabilityDto[]));
             }
         });
         getAllStudents().then((res) => {
             setStudents(res.data);
-            if (entityType === EntityTypes.Student) {
+            if (entityType === EntityType.Student) {
                 const student = findStudentById(
                     res.data,
-                    entityType === EntityTypes.Student ? entityId : -1
+                    entityType === EntityType.Student ? entityId : -1
                 );
                 setAvailabilities(student?.availabilities || ([] as AvailabilityDto[]));
             }
@@ -190,7 +190,7 @@ export const ScheduleCalendarPage: React.FC = () => {
                 />
 
                 <Box sx={styles.innerCalendarHeaderStyles}>
-                    {entityType !== EntityTypes.Class && (
+                    {entityType !== EntityType.Class && (
                         <Button
                             variant="contained"
                             color="success"

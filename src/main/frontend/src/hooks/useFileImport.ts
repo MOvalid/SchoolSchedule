@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EntityTypes } from '../types/enums/entityTypes';
+import { EntityType } from '../types/enums/entityType';
 import { importFiles, FileImportResponse } from '../services/FileImportService';
 
 export const useFileImport = () => {
@@ -8,7 +8,7 @@ export const useFileImport = () => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-    const uploadFiles = async (entityType: EntityTypes, files: File[]) => {
+    const uploadFiles = async (entityType: EntityType, files: File[]) => {
         setLoading(true);
         setSuccessMessage(null);
         setErrorMessage(null);

@@ -10,7 +10,7 @@ import {
 import { BaseDialog } from '../common/BaseDialog';
 import { SlotForm } from '../forms/SlotForm';
 import ConfirmDeleteActions from '../common/ConfirmDeleteActions';
-import { EntityTypes } from '../../types/enums/entityTypes';
+import { EntityType } from '../../types/enums/entityType';
 
 interface Props {
     open: boolean;
@@ -24,7 +24,7 @@ interface Props {
     rooms: RoomDto[];
     students: StudentDto[];
     classes: StudentClassDto[];
-    entityType: EntityTypes;
+    entityType: EntityType;
     saving?: boolean;
     fieldErrors: Record<string, string>;
     setFieldErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
