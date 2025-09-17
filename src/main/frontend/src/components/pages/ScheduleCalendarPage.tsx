@@ -172,10 +172,6 @@ export const ScheduleCalendarPage: React.FC = () => {
         getAllClasses().then((res) => setStudentClasses(res.data));
     }, [entityType, entityId]);
 
-    useEffect(() => {
-        console.log(availabilities);
-    }, [availabilities]);
-
     if (error)
         return <Typography color="error">Błąd ładowania grafiku: {error.message}</Typography>;
 
@@ -189,12 +185,15 @@ export const ScheduleCalendarPage: React.FC = () => {
                     editMode={editMode}
                     setEditMode={setEditMode}
                     onClearSchedule={() => setConfirmOpen(true)}
+                    entityId={entityId}
+                    entityType={entityType}
                 />
 
                 <Box sx={styles.innerCalendarHeaderStyles}>
                     {entityType !== EntityTypes.Class && (
                         <Button
                             variant="contained"
+                            color="success"
                             onClick={() =>
                                 navigate(`/${entityType.toLowerCase()}/${entityId}/availabilities`)
                             }

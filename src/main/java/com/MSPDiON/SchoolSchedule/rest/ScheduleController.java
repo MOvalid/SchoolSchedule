@@ -129,6 +129,7 @@ public class ScheduleController {
 
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.fileName() + "\"")
+        .header("Access-Control-Expose-Headers", "Content-Disposition")
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(file.content());
   }
