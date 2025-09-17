@@ -6,6 +6,8 @@ import EntityTypeSelector from '../common/EntityTypeSelector';
 import { useFileImport } from '../../hooks/useFileImport';
 import { useSnackbar } from '../../context/SnackbarContext';
 import BaseButton from '../common/BaseButton';
+import DownloadIcon from '@mui/icons-material/Download';
+import { useFileDownloader } from '../../hooks/useFileDownloader';
 
 const styles: Record<string, SxProps<Theme>> = {
     paper: { p: 3, maxWidth: 600, margin: '0 auto', width: '100%' },
@@ -15,6 +17,7 @@ const styles: Record<string, SxProps<Theme>> = {
     submitBtn: { mt: 3, width: '100%' },
     hint: (theme) => ({ mt: 2, color: theme.palette.text.secondary }),
     message: { mt: 2 },
+    headerBox: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 },
 };
 
 const ImportPage: React.FC = () => {
@@ -26,6 +29,15 @@ const ImportPage: React.FC = () => {
 
     const { loading, successMessage, errorMessage, validationErrors, uploadFiles, clearMessages } =
         useFileImport();
+
+    const {
+        isLoading: downloading,
+        error: downloadError,
+        startDownload,
+    } = useFileDownloader({
+        url: `/templates/${entityType.toLowerCase()}`,
+        fallbackFilename: `szablon_${entityType.toLowerCase()}.csv`,
+    });
 
     const handleFileSelect = (files: File[]) => {
         setSelectedFiles(files);
@@ -59,12 +71,28 @@ const ImportPage: React.FC = () => {
         }
     }, [successMessage, errorMessage, validationErrors]);
 
+    useEffect(() => {
+        if (downloadError) {
+            showSnackbar(downloadError, 'error');
+        }
+    }, [downloadError]);
+
     return (
         <Box>
             <Paper sx={styles.paper}>
-                <Typography variant="h6" sx={styles.title}>
-                    Import danych
-                </Typography>
+                <Box sx={styles.headerBox}>
+                    <Typography variant="h6">Import danych</Typography>
+
+                    <BaseButton
+                        variant="outlined"
+                        color="info"
+                        isLoading={downloading}
+                        onClick={startDownload}
+                        startIcon={<DownloadIcon />}
+                    >
+                        Pobierz szablon
+                    </BaseButton>
+                </Box>
 
                 <Typography variant="body2" sx={styles.groupLabel}>
                     Wybierz encję do importu
