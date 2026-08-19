@@ -167,7 +167,7 @@ export const ManageAvailabilityPage: React.FC<ManageAvailabilityPageProps> = ({
     if (isLoading) return <Typography>Ładowanie dostępności...</Typography>;
     if (error) return <Typography color="error">Błąd podczas ładowania</Typography>;
 
-    const sortedAvailabilities = (availabilities ?? []).slice().sort((a, b) => {
+    const sortedAvailabilities = (availabilities ?? []).slice().sort((a: AvailabilityDto, b: AvailabilityDto) => {
         if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
         return a.startTime.localeCompare(b.startTime);
     });

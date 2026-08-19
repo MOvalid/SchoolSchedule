@@ -16,7 +16,7 @@ public class DataSourceConfig {
         .driverClassName("org.postgresql.Driver")
         .url("jdbc:postgresql://localhost:5432/school_schedule")
         .username("postgres")
-        .password("admin")
+        .password("P@ssw0rd!")
         .build();
   }
 }

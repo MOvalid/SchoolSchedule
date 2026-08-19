@@ -4,7 +4,7 @@ import { useFormHandler } from '../../hooks/useFormHandler';
 import { FormHeader } from './FormHeader';
 import { FormSubmitButton } from './FormSubmitButton';
 import { useCreateStudent, useUpdateStudent } from '../../hooks/useStudents';
-import { CreateStudentDto, StudentDto } from '../../types/types';
+import {CreateStudentDto, StudentClassDto, StudentDto} from '../../types/types';
 import { useStudentClasses } from '../../hooks/useStudentClasses';
 import { Spinner } from '../common/Spinner';
 
@@ -107,7 +107,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ mode, initialData, onS
                     value={formValues.studentClassId ?? ''}
                     onChange={(e) => handleSelectChange('studentClassId', e.target.value)}
                 >
-                    {classes.map((cls) => (
+                    {classes.map((cls: StudentClassDto) => (
                         <MenuItem key={cls.id} value={cls.id}>
                             {cls.name}
                         </MenuItem>

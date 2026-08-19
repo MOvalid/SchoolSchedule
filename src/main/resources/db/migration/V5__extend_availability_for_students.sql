@@ -12,8 +12,7 @@ INSERT INTO availability (entity_id, entity_type, day_of_week, start_time, end_t
 SELECT therapist_id, 'therapist', day_of_week, start_time, end_time
 FROM therapist_availability;
 
-CREATE SEQUENCE availability_id_seq;
-SELECT setval('availability_id_seq', (SELECT MAX(id) FROM availability));
+SELECT setval('availability_id_seq', COALESCE((SELECT MAX(id) FROM availability), 1));
 
 DROP TABLE therapist_availability;
 DROP SEQUENCE IF EXISTS therapist_availability_id_seq;

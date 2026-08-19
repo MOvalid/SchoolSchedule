@@ -36,9 +36,8 @@ INSERT INTO schedule_slot_students (schedule_slot_id, student_id) VALUES
 (1, 1),
 (1, 2);
 
-
-SELECT setval('student_class_id_seq', (SELECT MAX(id) FROM student_class));
-SELECT setval('student_id_seq', (SELECT MAX(id) FROM student));
-SELECT setval('therapist_id_seq', (SELECT MAX(id) FROM therapist));
-SELECT setval('room_id_seq', (SELECT MAX(id) FROM room));
-SELECT setval('schedule_slot_id_seq', (SELECT MAX(id) FROM schedule_slot));
+SELECT setval('student_class_id_seq', COALESCE((SELECT MAX(id) FROM student_class), 1));
+SELECT setval('student_id_seq', COALESCE((SELECT MAX(id) FROM student), 1));
+SELECT setval('therapist_id_seq', COALESCE((SELECT MAX(id) FROM therapist), 1));
+SELECT setval('room_id_seq', COALESCE((SELECT MAX(id) FROM room), 1));
+SELECT setval('schedule_slot_id_seq', COALESCE((SELECT MAX(id) FROM schedule_slot), 1));

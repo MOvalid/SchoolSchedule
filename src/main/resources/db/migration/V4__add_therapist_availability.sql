@@ -15,4 +15,4 @@ INSERT INTO therapist_availability (therapist_id, day_of_week, start_time, end_t
 (2, 2, '09:00', '13:00'),
 (2, 5, '09:00', '13:00');
 
-SELECT setval('therapist_availability_id_seq', (SELECT MAX(id) FROM therapist_availability));
+SELECT setval('therapist_availability_id_seq', COALESCE((SELECT MAX(id) FROM therapist_availability), 1));

@@ -1,0 +1,97 @@
+version: '3'
+
+vars:
+  FRONTEND_DIR: 'src/main/frontend'
+
+tasks:
+  # ==========================================
+  # 1. DATABASE / DOCKER
+  # ==========================================
+  db:up:
+    desc: "Start the database container in the background"
+    cmds:
+      - docker compose up -d
+
+  db:down:
+    desc: "Stop the database container"
+    cmds:
+      - docker compose down
+
+  db:logs:
+    desc: "Tail database container logs"
+    cmds:
+      - docker compose logs -f
+
+  # ==========================================
+  # 2. BACKEND (Java / Maven)
+  # ==========================================
+  backend:dev:
+    desc: "Start the Spring Boot backend application"
+    deps: [db:up]
+    cmds:
+      - "{{if eq OS \"windows\"}}mvnw.cmd{{else}}./mvnw{{end}} spring-boot:run"
+
+  backend:test:
+    desc: "Run backend tests"
+    cmds:
+      - "{{if eq OS \"windows\"}}mvnw.cmd{{else}}./mvnw{{end}} test"
+
+  backend:build:
+    desc: "Build backend JAR package (skipping tests)"
+    cmds:
+      - "{{if eq OS \"windows\"}}mvnw.cmd{{else}}./mvnw{{end}} clean package -DskipTests"
+
+  # ==========================================
+  # 3. FRONTEND (React / TS / npm)
+  # ==========================================
+  frontend:install:
+    desc: "Install frontend node_modules dependencies"
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm install
+
+  frontend:dev:
+    desc: "Start React development server"
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm start
+
+  frontend:test:
+    desc: "Run frontend tests"
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm run test
+
+  frontend:lint:
+    desc: "Run ESLint and Prettier checks"
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm run lint
+
+  frontend:build:
+    desc: "Build production bundle for frontend"
+    dir: '{{.FRONTEND_DIR}}'
+    cmds:
+      - npm run build
+
+  # ==========================================
+  # 4. MAIN DEVELOPER ALIASES
+  # ==========================================
+  dev:
+    desc: "Spin up database and run both backend and frontend servers"
+    deps: [db:up]
+    cmds:
+      - task: backend:dev
+      - task: frontend:dev
+
+  test:
+    desc: "Run all backend and frontend tests"
+    cmds:
+      - task: backend:test
+      - task: frontend:test
+
+  build:
+    desc: "Build full production artifacts (frontend + backend)"
+    cmds:
+      - task: frontend:build
+      - task: backend:build
