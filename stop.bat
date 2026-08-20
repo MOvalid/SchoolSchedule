@@ -1,0 +1,3 @@
+@echo off
+echo Zatrzymywanie aplikacji...
+docker compose down
